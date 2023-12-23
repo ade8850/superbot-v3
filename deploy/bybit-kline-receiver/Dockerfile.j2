@@ -1,0 +1,14 @@
+FROM {{ image_base }}
+
+{% for user_lib in user_baselibs %}
+ADD .user-baselibs/{{ user_lib }} /app/{{ user_lib }}
+RUN cd /app/{{ user_lib }} && test -f requirements.txt && pip3 install --no-cache-dir -r requirements.txt || echo "no reqs for {{ user_lib }}"
+{% endfor %}
+
+{% for source in sources %}
+ADD {{ source.origin }} {{ source.destination }}
+{% endfor %}
+
+
+#RUN test -f requirements.txt && pip3 install --no-cache-dir -r requirements.txt
+

@@ -1,0 +1,17 @@
+FROM {{ image_base }}
+
+{% for user_lib in user_baselibs %}
+ADD .user-baselibs/{{ user_lib }} /app/{{ user_lib }}
+RUN cd /app/{{ user_lib }} && test -f requirements.txt && pip3 install -r requirements.txt || echo "no reqs for {{ user_lib }}"
+{% endfor %}
+
+{% for source in sources %}
+ADD {{ source.origin }} {{ source.destination }}
+{% endfor %}
+
+RUN pip install psycopg2-binary celery[redis,sqlalchemy]
+RUN pip install requests
+
+#RUN pip install ipython
+
+CMD celery -A tasks worker --loglevel=INFO

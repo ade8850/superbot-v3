@@ -1,0 +1,16 @@
+env.local
+.env.local
+.python-version
+venv
+.idea/
+.DS_Store
+targets.yaml
+.terraform
+terraform/backend.hcl
+terraform/.terraform.lock.hcl
+terraform/terraform.tfplan
+terraform/terraform.tfvars.json
+**/*/__pycache__/
+**/*/.build/
+.envrc
+
