@@ -1,8 +1,8 @@
 import os
 
 import celery
-from . import app
 
+from . import app
 
 try:
     import krules_env
@@ -11,12 +11,10 @@ try:
 except:  # avoid circular import
     pass
 
-
 from krules_core.providers import event_router_factory
 
 
 class BaseTask(celery.Task):
-
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         event_router_factory().route(
             "sys.celery.worker.failed",
@@ -31,3 +29,8 @@ class BaseTask(celery.Task):
             topic=os.environ["SCHEDULER_ERRORS_TOPIC"]
         )
 
+
+@app.task(base=BaseTask, bind=True, ignore_result=True)
+def bybit_process_kline_data(*args, **kwargs):
+    from bybit.tasks import process_kline_data
+    return process_kline_data(*args, **kwargs)

@@ -1,0 +1,6 @@
+FROM {{ image_base }}
+
+{% for source in sources %}
+ADD {{ source.origin }} {{ source.destination }}
+{% endfor %}
+

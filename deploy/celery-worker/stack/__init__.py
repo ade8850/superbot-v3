@@ -44,18 +44,23 @@ deployment = GkeDeployment(
         "scheduler-errors": topic_scheduler_errors,
     },
     use_firestore=True,
-    # app_container_kwargs={
-    #     "env": [
-    #         EnvVarArgs(
-    #             name="FIRESTORE_ID",
-    #             value=firestore_id,
-    #         )
-    #     ]
-    # }
-    # # subscribe_to={
-    #     "defaultsink": topic_defaultsink,
-    #     "ingestion": topic_ingestion,
-    # }
+    app_container_kwargs={
+        "env": [
+            EnvVarArgs(
+                name="BYBIT_TESTNET",
+                value=sane_utils.get_var_for_target("bybit_testnet", default="0")
+            ),
+            EnvVarArgs(
+                name="KLINE_USE_CACHED_RESULTS",
+                value=sane_utils.get_var_for_target("kline_use_cached_results", default="1")
+            ),
+            EnvVarArgs(
+                name="KLINE_ALWAYS_CACHE_RESULTS",
+                value=sane_utils.get_var_for_target("kline_always_cache_results", default="1")
+            )
+        ]
+    }
+
 
 )
 

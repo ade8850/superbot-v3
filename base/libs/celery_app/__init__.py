@@ -21,5 +21,16 @@ app = Celery(
     'sb-scheduler',
     broker=celery_broker,
     result_backend=celery_result_backend,
-#    accept_content='pickle'
 )
+
+
+class CeleryConfig:
+    task_serializer = "pickle"
+    result_serializer = "pickle"
+    event_serializer = "json"
+    accept_content = ["application/json", "application/x-python-serialize"]
+    result_accept_content = ["application/json", "application/x-python-serialize"]
+    task_store_errors_even_if_ignored = True
+
+
+app.config_from_object(CeleryConfig)

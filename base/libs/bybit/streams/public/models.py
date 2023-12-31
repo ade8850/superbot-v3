@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, List
+from typing import Literal, List, Sequence, NamedTuple
 
 from pydantic import BaseModel, field_validator, PositiveInt, field_serializer
 from pydantic_core.core_schema import ValidationInfo
@@ -10,14 +10,16 @@ class BaseStreamMessage(BaseModel):
     ts: datetime
     type: Literal['snapshot', 'delta']
 
-    # @field_validator('ts')
-    # @classmethod
-    # def validate_ts(cls, v: PositiveInt, info: ValidationInfo) -> datetime:
-    #     return datetime.fromtimestamp(v / 1000)
-
     @field_serializer('ts')
     def serialize_dt(self, dt: datetime, _info):
         return dt.timestamp()
+
+
+class BaseAPIResponse(BaseModel):
+    retCode: int
+    retMsg: str
+    retExtInfo: dict
+    time: datetime
 
 
 class KlineMessageData(BaseModel):
@@ -39,7 +41,40 @@ class KlineMessageData(BaseModel):
 
 
 class KlineMessage(BaseStreamMessage):
-    data: List[KlineMessageData]
+    data: Sequence[KlineMessageData]
+
+
+class GetKlineAPIResponseResultListItem(NamedTuple):
+    start: datetime
+    open: float
+    close: float
+    high: float
+    low: float
+    volume: float
+    turnover: float
+
+    def get_time(self) -> str:
+        """
+        round start to minute
+        """
+        return datetime(
+            year=self.start.year,
+            month=self.start.month,
+            day=self.start.day,
+            hour=self.start.hour,
+            minute=self.start.minute,
+            tzinfo=self.start.tzinfo
+        ).isoformat()
+
+
+class GetKlineAPIResponseResult(BaseModel):
+    symbol: str
+    category: str
+    list: Sequence[GetKlineAPIResponseResultListItem]
+
+
+class GetKlineAPIResponse(BaseAPIResponse):
+    result: GetKlineAPIResponseResult
 
 
 class TickerMessageData(BaseModel):

@@ -1,0 +1,2 @@
+kubectl run pg-tunnel-$USER -it --image=alpine/socat --tty --rm --expose=true --port=5432 tcp-listen:5432,fork,reuseaddr tcp-connect:superbot-v3-db:5432
+#kubectl port-forward svc/pg-tunnel-$USER 5432:5432

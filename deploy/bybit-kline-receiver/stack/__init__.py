@@ -47,6 +47,8 @@ deployment = GkeDeployment(
     gcp_repository=gcp_repository,
     access_secrets=[
         "subjects_redis_url",
+        "celery_broker",
+        "celery_result_backend",
     ],
     publish_to={
         "procevents": topic_procevents,
@@ -57,6 +59,10 @@ deployment = GkeDeployment(
                 name="SUBSCRIBE_SYMBOLS",
                 value=sane_utils.get_var_for_target("subscribe_symbols")
             ),
+            EnvVarArgs(
+                name="BYBIT_TESTNET",
+                value=sane_utils.get_var_for_target("bybit_testnet", default="0")
+            )
         ]
     }
 )
