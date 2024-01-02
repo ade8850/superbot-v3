@@ -19,9 +19,11 @@ sane_utils.make_prepare_build_context_recipes(
         "celery_app",
         "bybit",
         "app_common",
+        "technical_analysis",
     ],
     sources=[
         "tasks.py",
+        "ruleset.py",
         #("ipython_config.py", "/root/.ipython/profile_default/"),
     ],
 )

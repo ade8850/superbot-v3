@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 from krules_core.providers import subject_factory
 from pydantic import BaseModel
@@ -12,9 +13,12 @@ class Interval(BaseModel):
 
 
 class Symbol(BaseModel):
+    _subject: Subject | None = None
     name: str
     category: str
     provider: str
 
     def get_subject(self) -> Subject:
-        return subject_factory(f"symbol:{self.provider}:{self.category}:{self.name.lower()}")
+        if "_subject" not in self or self._subject is None:
+            self._subject = subject_factory(f"symbol:{self.provider}:{self.category}:{self.name.lower()}")
+        return self._subject

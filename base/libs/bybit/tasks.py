@@ -5,6 +5,7 @@ import pandas as pd
 from pybit.unified_trading import HTTP
 
 from app_common.models import Interval, Symbol
+from technical_analysis import TechnicalAnalysis
 from .streams.public.models import KlineMessageData, GetKlineAPIResponse
 
 kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
@@ -77,6 +78,8 @@ def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: Kli
     df = pd.DataFrame.from_records(records)
     df.set_index(pd.DatetimeIndex(pd.to_datetime(df['time'])), inplace=True)
     df.drop('time', axis=1, inplace=True)
+
+    TechnicalAnalysis(df, interval, symbol).run()
 
     return {
         "subject": subject.name,

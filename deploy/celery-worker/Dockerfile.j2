@@ -14,4 +14,5 @@ RUN pip install requests
 
 #RUN pip install ipython
 
+
 CMD celery -A tasks worker --loglevel=INFO
