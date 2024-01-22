@@ -24,8 +24,7 @@ sane_utils.make_prepare_build_context_recipes(
     sources=[
         "tasks.py",
         "ruleset.py",
-        "cm-client",
-        ("ipython_config.py", "/root/.ipython/profile_default/"),
+        #("ipython_config.py", "/root/.ipython/profile_default/"),
     ],
 )
 

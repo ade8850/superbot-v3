@@ -6,14 +6,11 @@ from krules_core.providers import event_router_factory
 from krules_fastapi_env import KrulesApp
 from contextlib import asynccontextmanager
 
-from pytz import tzinfo
-
 from bybit.event_types import BybitStreams
-from bybit.streams import public
 import os
 from pybit.unified_trading import WebSocket
 
-from bybit.streams.public.models import KlineMessage, TickerMessage
+from bybit.models import KlineMessage, TickerMessage
 
 ws: WebSocket | None = None
 

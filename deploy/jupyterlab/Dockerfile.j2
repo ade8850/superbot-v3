@@ -1,0 +1,58 @@
+FROM {{ image_base }}
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update --yes && \
+    # - `apt-get upgrade` is run to patch known vulnerabilities in system packages
+    #   as the Ubuntu base image is rebuilt too seldom sometimes (less than once a month)
+    apt-get upgrade --yes && \
+    apt-get install --yes --no-install-recommends \
+    # - bzip2 is necessary to extract the micromamba executable.
+    bzip2 \
+    ca-certificates \
+    locales \
+    sudo \
+    # - `tini` is installed as a helpful container entrypoint,
+    #   that reaps zombie processes and such of the actual executable we want to start
+    #   See https://github.com/krallin/tini#why-tini for details
+    tini \
+    wget && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
+
+RUN apt-get update --yes && \
+    apt-get install --yes --no-install-recommends \
+    # - Add necessary fonts for matplotlib/seaborn
+    #   See https://github.com/jupyter/docker-stacks/pull/380 for details
+    fonts-liberation \
+    # - `pandoc` is used to convert notebooks to html files
+    #   it's not present in the aarch64 Ubuntu image, so we install it here
+    pandoc
+    # - `run-one` - a wrapper script that runs no more
+    #   than one unique instance of some command with a unique set of arguments,
+    #   we use `run-one-constantly` to support the `RESTARTABLE` option
+    # run-one && \
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+  jupyterlab \
+  notebook \
+  jupyterhub \
+  nbclassic && \
+  jupyter server --generate-config && \
+  jupyter lab clean
+
+ENV JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
+CMD ["jupyter", "lab"]
+
+{% for source in sources %}
+ADD {{ source.origin }} {{ source.destination }}
+{% endfor %}
+
+#HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
+#    CMD /etc/jupyter/docker_healthcheck.py || exit 1
+
+WORKDIR /root/work
+

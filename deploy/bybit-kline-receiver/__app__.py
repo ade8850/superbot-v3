@@ -9,12 +9,12 @@ from pybit.unified_trading import WebSocket
 
 from app_common.models import Symbol
 from bybit import INTERVALS
-from bybit.streams.public.models import KlineMessage
-from celery_app.tasks import bybit_process_kline_data
+from bybit.models import KlineMessage
+from celery_app.tasks import bybit_process_kline_data, cm_publish
 
 ws: WebSocket | None = None
 
-symbols = os.environ.get("SUBSCRIBE_SYMBOLS").split(",")
+all_symbols = os.environ.get("ALL_SYMBOLS").split(",")
 
 
 @asynccontextmanager
@@ -33,6 +33,19 @@ async def lifespan(app: KrulesApp):
                 for data in message.data:
                     if data.confirm:
                         app.logger.info(f">CONFIRMED [{symbol}]<")
+                        cm_publish.delay(
+                            group=f"symbols.{symbol.provider}.{symbol.category}",
+                            entity=symbol.name,
+                            properties=dict(
+                                close=data.close,
+                                year=data.start.year,
+                                month=data.start.month,
+                                day=data.start.day,
+                                hour=data.start.hour,
+                                minute=data.start.minute,
+                                weekday=data.start.isoweekday(),
+                            )
+                        )
                         for interval in INTERVALS:
                             bybit_process_kline_data.delay(
                                 interval=interval,
@@ -49,7 +62,7 @@ async def lifespan(app: KrulesApp):
         testnet=bool(eval(os.environ.get("BYBIT_TESTNET", "0")))
     )
 
-    for symbol in symbols:
+    for symbol in all_symbols:
         app.logger.info("Subscribing KLINE stream", extra={"props": {"symbol": symbol}})
         ws.kline_stream(
             interval=1,

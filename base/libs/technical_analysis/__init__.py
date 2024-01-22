@@ -14,10 +14,11 @@ class TechnicalAnalysis:
 
     def run(self):
         self.calculate_emas(periods=[
-            9, 12, 26, 50, 100, 200
+            #9, 12, 26, 50, 100, 200
+            100
         ])
-        self.calculate_stochastic_rsi(window=14, smooth1=3, smooth2=3)
-        self.calculate_supertrend(lookback=10, multiplier=3)
+        #self.calculate_stochastic_rsi(window=14, smooth1=3, smooth2=3)
+        #self.calculate_supertrend(lookback=10, multiplier=3)
 
     def calculate_emas(self, periods: Sequence[int]):
         from ta.trend import EMAIndicator
@@ -123,10 +124,13 @@ class TechnicalAnalysis:
                 upt.append(np.nan)
                 dt.append(np.nan)
 
-        st, upt, dt = pd.Series(supertrend.iloc[:, 0]), pd.Series(upt), pd.Series(dt)
-        upt.index, dt.index = supertrend.index, supertrend.index
+        # st, upt, dt = pd.Series(supertrend.iloc[:, 0]), pd.Series(upt), pd.Series(dt)
+        # upt.index, dt.index = supertrend.index, supertrend.index
+        #
+        # df['st'], df['st_upt'], df['st_dt'] = st, upt, dt
+        st = pd.Series(supertrend.iloc[:, 0])
 
-        df['st'], df['st_upt'], df['st_dt'] = st, upt, dt
+        df['st'] = st
         st = df.iloc[-1].st
         self.symbol.get_subject().set(f"st_{self.interval.freq}", st, use_cache=False)
 

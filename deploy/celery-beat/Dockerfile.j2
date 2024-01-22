@@ -11,8 +11,5 @@ ADD {{ source.origin }} {{ source.destination }}
 
 RUN pip install requests
 
-RUN pip install poetry
-RUN cd cm-client && poetry install
-RUN pip install ipython
 
-CMD celery -A tasks worker --loglevel=INFO
+CMD celery -A tasks beat --loglevel=INFO

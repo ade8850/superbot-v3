@@ -2,6 +2,7 @@ import os
 
 import celery
 
+from app_common.models import Symbol
 from . import app
 
 try:
@@ -12,6 +13,9 @@ except:  # avoid circular import
     pass
 
 from krules_core.providers import event_router_factory
+
+
+all_symbols = os.environ.get("ALL_SYMBOLS", "").split(",")
 
 
 class BaseTask(celery.Task):
@@ -34,3 +38,22 @@ class BaseTask(celery.Task):
 def bybit_process_kline_data(*args, **kwargs):
     from bybit.tasks import process_kline_data
     return process_kline_data(*args, **kwargs)
+
+
+@app.task(base=BaseTask, bind=True, ignore_result=True)
+def bybit_update_instrument_info(*args, **kwargs):
+    from bybit.tasks import update_instrument_info
+    for symbol in all_symbols:
+        update_instrument_info(symbol=Symbol(
+            name=symbol,
+            category="linear",
+            provider="bybit"
+        ))
+    return {}
+
+
+@app.task(base=BaseTask, bind=False, ignore_result=True)
+def cm_publish(**kwargs):
+    from krules_companion_client.http import CompanionClient
+    client = CompanionClient()
+    client.publish(**kwargs)

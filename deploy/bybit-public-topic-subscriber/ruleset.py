@@ -6,7 +6,7 @@ from krules_core.base_functions.processing import Process
 from krules_core.models import Rule
 
 from bybit.event_types import BybitStreams
-from bybit.streams.public.models import KlineMessage
+from bybit.models import KlineMessage
 
 rulesdata = [
     Rule(

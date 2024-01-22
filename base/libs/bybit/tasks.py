@@ -1,3 +1,4 @@
+import json
 import os
 from typing import List
 
@@ -5,19 +6,23 @@ import pandas as pd
 from pybit.unified_trading import HTTP
 
 from app_common.models import Interval, Symbol
+from bybit.models import KlineMessageData, GetKlineAPIResponse, GetInstrumentInfoAPIResponse
 from technical_analysis import TechnicalAnalysis
-from .streams.public.models import KlineMessageData, GetKlineAPIResponse
 
 kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
 kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "0")))
 kline_limit_size = int(eval(os.environ.get("KLINE_LIMIT_SIZE", "400")))
 
 
+def _get_session() -> HTTP:
+    return HTTP(testnet=bool(eval(os.environ.get("BYBIT_TESTNET", "0"))))
+
+
 def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: KlineMessageData):
     subject = symbol.get_subject()
     records = subject.get(f"_kline_records_{interval.name}", default=[]) if kline_use_cached_results else []
     if len(records) < kline_limit_size:
-        session = HTTP(testnet=bool(eval(os.environ.get("BYBIT_TESTNET", "0"))))
+        session = _get_session()
         raw = session.get_kline(
             category=symbol.category,
             symbol=symbol.name,
@@ -88,3 +93,17 @@ def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: Kli
         "is_fresh_data": is_fresh_data,
         "action": action,
     }
+
+
+def update_instrument_info(symbol: Symbol):
+
+    session: HTTP = _get_session()
+    raw = session.get_instruments_info(category=symbol.category, symbol=symbol.name)
+    resp = GetInstrumentInfoAPIResponse.model_validate(raw)
+    print(resp)
+    assert (resp.retMsg == "OK")
+    assert (len(resp.result.list) == 1)
+
+    subject = symbol.get_subject()
+    subject.set("_q", resp.result.list[0].model_dump(), muted=True)
+    subject.store()

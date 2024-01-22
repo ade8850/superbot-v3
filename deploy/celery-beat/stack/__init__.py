@@ -23,24 +23,14 @@ gcp_repository = Repository.get(
     )
 )
 
-topic_procevents = Topic.get(
-    "procevents",
+topic_scheduler_errors = Topic.get(
+    "scheduler-errors",
     base_stack_ref.get_output(
         "topics"
     ).apply(
-        lambda topics: topics.get("procevents").get("id")
+        lambda topics: topics.get("scheduler-errors").get("id")
     )
 )
-
-
-# topic_bybit_public = Topic.get(
-#     "bybit-public",
-#     base_stack_ref.get_output(
-#         "topics"
-#     ).apply(
-#         lambda topics: topics.get("bybit-public").get("id")
-#     )
-# )
 
 deployment = GkeDeployment(
     app_name,
@@ -48,21 +38,29 @@ deployment = GkeDeployment(
     access_secrets=[
         "subjects_redis_url",
         "celery_broker",
+        #"celery_result_backend",
     ],
     publish_to={
-        "procevents": topic_procevents,
+        "scheduler-errors": topic_scheduler_errors,
     },
-    app_container_kwargs={
-        "env": [
-            EnvVarArgs(
-                name="ALL_SYMBOLS",
-                value=sane_utils.get_var_for_target("all_symbols")
-            ),
-            EnvVarArgs(
-                name="BYBIT_TESTNET",
-                value=sane_utils.get_var_for_target("bybit_testnet", default="0")
-            )
-        ]
-    }
+    use_firestore=True,
+    # app_container_kwargs={
+    #     "env": [
+    #         EnvVarArgs(
+    #             name="BYBIT_TESTNET",
+    #             value=sane_utils.get_var_for_target("bybit_testnet", default="0")
+    #         ),
+    #         EnvVarArgs(
+    #             name="KLINE_USE_CACHED_RESULTS",
+    #             value=sane_utils.get_var_for_target("kline_use_cached_results", default="1")
+    #         ),
+    #         EnvVarArgs(
+    #             name="KLINE_ALWAYS_CACHE_RESULTS",
+    #             value=sane_utils.get_var_for_target("kline_always_cache_results", default="1")
+    #         )
+    #     ]
+    # }
+
+
 )
 
