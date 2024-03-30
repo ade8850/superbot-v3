@@ -1,9 +1,10 @@
 from krules_core.base_functions.processing import ProcessingFunction
 
-from krules_companion_client.http import CompanionClient
+#from krules_companion_client.http import HttpClient
 
-cm_client = CompanionClient()
+#cm_client = HttpClient()
 
+from celery_app.tasks import cm_publish
 
 def _guess_entity_and_group_from_subject(subject_name):
     if subject_name.startswith('symbol:'):
@@ -21,7 +22,7 @@ class CompanionPublish(ProcessingFunction):
         if properties is None:
             properties = {}
 
-        cm_client.publish(
+        cm_publish.delay(
             entity=entity,
             group=group,
             properties=properties,

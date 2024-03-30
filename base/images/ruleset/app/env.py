@@ -3,7 +3,6 @@ import os
 
 import google.auth
 from dependency_injector import providers
-from google.cloud import secretmanager
 from krules_cloudevents_pubsub.route.dispatcher import CloudEventsDispatcher
 from krules_core.providers import event_dispatcher_factory, subject_storage_factory
 from krules_env import get_source, RULE_PROC_EVENT
@@ -17,7 +16,15 @@ cache_secrets = {}
 
 
 def _get_topic_id(subject, event_type):
+    # TODO: remove me
+    from krules_core.providers import subject_factory, event_router_factory
+    print(f"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ _get_topic_id> {str(subject)}, {str(event_type)}")
+    subject = subject_factory(subject)
+    print(f">>>> subject storage: {subject._storage}")
+    print(f">>>> rules: {str(event_router_factory()._callables)}")
+    # END TODO
     if event_type == RULE_PROC_EVENT:
+        print(">>>>> GOT PROC EVENT")
         return os.environ.get("PROCEVENTS_TOPIC", os.environ.get("DEFAULTSINK_TOPIC"))
     else:
         topic_name = os.environ.get("DEFAULTSINK_TOPIC")
@@ -26,6 +33,8 @@ def _get_topic_id(subject, event_type):
 
 
 def get_secret(secret_name: str, default=None) -> str:
+    from google.cloud import secretmanager
+
     global cache_secrets
     secret_name = secret_name.upper()
     if secret_name in os.environ:
@@ -42,6 +51,7 @@ def get_secret(secret_name: str, default=None) -> str:
 
 
 def init():
+
     event_dispatcher_factory.override(
         providers.Singleton(lambda: CloudEventsDispatcher(
             project_id=PROJECT,

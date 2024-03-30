@@ -54,6 +54,6 @@ def bybit_update_instrument_info(*args, **kwargs):
 
 @app.task(base=BaseTask, bind=False, ignore_result=True)
 def cm_publish(**kwargs):
-    from krules_companion_client.http import CompanionClient
-    client = CompanionClient()
+    from krules_companion_client.http import HttpClient
+    client = HttpClient()
     client.publish(**kwargs)

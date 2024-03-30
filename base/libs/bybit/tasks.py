@@ -1,3 +1,5 @@
+import base64
+import io
 import json
 import os
 from typing import List
@@ -11,6 +13,7 @@ from technical_analysis import TechnicalAnalysis
 
 kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
 kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "0")))
+kline_store_df_on_subject = bool(eval(os.environ.get("KLINE_STORE_DF_ON_SUBJECT", "0")))
 kline_limit_size = int(eval(os.environ.get("KLINE_LIMIT_SIZE", "400")))
 
 
@@ -20,7 +23,7 @@ def _get_session() -> HTTP:
 
 def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: KlineMessageData):
     subject = symbol.get_subject()
-    records = subject.get(f"_kline_records_{interval.name}", default=[]) if kline_use_cached_results else []
+    records = subject.get(f"_kline_records_{interval.freq}", default=[]) if kline_use_cached_results else []
     if len(records) < kline_limit_size:
         session = _get_session()
         raw = session.get_kline(
@@ -31,7 +34,6 @@ def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: Kli
         )
         resp = GetKlineAPIResponse.model_validate(raw)
         assert (resp.retMsg == "OK")
-        print(f">size: {len(resp.result.list)}")
 
         is_fresh_data = True
         action = None
@@ -77,14 +79,26 @@ def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: Kli
             records = records[:kline_limit_size]
 
     if kline_use_cached_results or kline_always_cache_results:
-        subject.set(f"_kline_records_{interval.name}", records, muted=True)
+        subject.set(f"_kline_records_{interval.freq}", records, muted=True)
         subject.store()
 
     df = pd.DataFrame.from_records(records)
     df.set_index(pd.DatetimeIndex(pd.to_datetime(df['time'])), inplace=True)
     df.drop('time', axis=1, inplace=True)
+    df.sort_index(ascending=True, inplace=True)
 
     TechnicalAnalysis(df, interval, symbol).run()
+
+    if kline_store_df_on_subject:
+        print(">> STORE DF ON SUBJECT")
+        buf = io.BytesIO()
+        df.to_pickle(buf)
+        base64_string = base64.b64encode(buf.getvalue()).decode("utf-8")
+        subject.set(f"_kline_dataframe_{interval.freq}", base64_string, muted=True)
+        subject.store()
+        print("<< DONE")
+    else:
+        print("!! NOT STORE DF ON SUBJECT")
 
     return {
         "subject": subject.name,
@@ -100,7 +114,6 @@ def update_instrument_info(symbol: Symbol):
     session: HTTP = _get_session()
     raw = session.get_instruments_info(category=symbol.category, symbol=symbol.name)
     resp = GetInstrumentInfoAPIResponse.model_validate(raw)
-    print(resp)
     assert (resp.retMsg == "OK")
     assert (len(resp.result.list) == 1)
 

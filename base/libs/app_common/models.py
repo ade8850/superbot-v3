@@ -18,7 +18,7 @@ class Symbol(BaseModel):
     category: str
     provider: str
 
-    def get_subject(self) -> Subject:
+    def get_subject(self, **kwargs) -> Subject:
         if "_subject" not in self or self._subject is None:
-            self._subject = subject_factory(f"symbol:{self.provider}:{self.category}:{self.name.lower()}")
+            self._subject = subject_factory(f"symbol:{self.provider.lower()}:{self.category.lower()}:{self.name.lower()}", **kwargs)
         return self._subject

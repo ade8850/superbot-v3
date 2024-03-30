@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 from typing import Sequence
 
 from krules_core.base_functions.filters import Filter
@@ -42,9 +43,9 @@ rulesdata: Sequence[Rule] = [
             )
         ],
         processing=[
-            # Process(
-            #     lambda payload: print(json.dumps(payload, indent=2))
-            # ),
+            Process(
+                lambda payload: print(json.dumps(payload, indent=2))
+            ),
             CompanionPublish(
                 properties=lambda payload: {
                     payload.get("property_name"): payload.get("value")
@@ -52,5 +53,4 @@ rulesdata: Sequence[Rule] = [
             )
         ]
     ),
-
 ]

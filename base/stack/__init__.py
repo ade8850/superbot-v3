@@ -39,3 +39,16 @@ ruleset_base_image = SaneDockerImage(
 
 pulumi.export("ruleset-image-base", ruleset_base_image.image)
 
+datastore = gcp.firestore.Database(
+    "datastore",
+    project=sane_utils.get_project_id(),
+    name=sane_utils.get_var_for_target("project_name"),
+    location_id=sane_utils.get_region(),
+    type="DATASTORE_MODE",
+    concurrency_mode="OPTIMISTIC",
+    app_engine_integration_mode="DISABLED",
+    # delete_protection_state="DELETE_PROTECTION_ENABLED",
+    # deletion_policy="DELETE"
+)
+
+

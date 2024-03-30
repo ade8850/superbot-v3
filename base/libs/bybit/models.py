@@ -147,7 +147,6 @@ class InstrumentInfoItem(BaseModel):
         return dt.timestamp()
 
 
-
 class GetInstrumentInfoAPIResponseResult(BaseModel):
     category: Literal["linear", "inverse", "option", "spot"]
     nextPageCursor: str

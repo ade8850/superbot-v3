@@ -30,6 +30,16 @@ RUN pip install --no-cache-dir --no-deps \
     krules-fastapi-env==0.12.6rc2 \
     ;
 
+RUN pip install --no-cache-dir --no-deps \
+    cloudevents==1.10.1 \
+    google-auth==2.28.1 \
+    google-api-core==2.17.1 \
+    google-cloud-pubsub==2.19.6 \
+    google-cloud-secret-manager==2.18.2 \
+    protobuf==4.25.3 \
+    grpcio==1.62.0 \
+    ;
+
 # development libs
 RUN pip install --no-cache-dir pysnooper ipython contexttimer
 

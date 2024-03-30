@@ -31,6 +31,14 @@ topic_scheduler_errors = Topic.get(
         lambda topics: topics.get("scheduler-errors").get("id")
     )
 )
+topic_procevents = Topic.get(
+    "procevents",
+    base_stack_ref.get_output(
+        "topics"
+    ).apply(
+        lambda topics: topics.get("procevents").get("id")
+    )
+)
 
 deployment = GkeDeployment(
     app_name,
@@ -42,6 +50,7 @@ deployment = GkeDeployment(
     ],
     publish_to={
         "scheduler-errors": topic_scheduler_errors,
+        "procevents": topic_procevents,
     },
     use_firestore=True,
     app_container_kwargs={
@@ -71,8 +80,16 @@ deployment = GkeDeployment(
                 value=sane_utils.get_var_for_target("kline_use_cached_results", default="1")
             ),
             EnvVarArgs(
+                name="KLINE_STORE_DF_ON_SUBJECT",
+                value=sane_utils.get_var_for_target("kline_store_df_on_subject", default="1")
+            ),
+            EnvVarArgs(
                 name="KLINE_ALWAYS_CACHE_RESULTS",
                 value=sane_utils.get_var_for_target("kline_always_cache_results", default="1")
+            ),
+            EnvVarArgs(
+                name="KLINE_SIZE_LIMIT",
+                value=sane_utils.get_var_for_target("kline_size_limit", default="400")
             )
         ]
     }
