@@ -20,6 +20,7 @@ def perform(price: float, subject: Subject) -> dict:
     _supertrend_T = supertrend_strategy("T", price, symbol)
     _supertrend_dir_T = supertrend_dir_strategy("T", price, symbol)
     _supertrend_3T = supertrend_strategy("3T", price, symbol)
+    _supertrend_dir_3T = supertrend_dir_strategy("3T", price, symbol)
     # _supertrend_5T = supertrend_strategy("5T", price, symbol)
     # _supertrend_15T = supertrend_strategy("15T", price, symbol)
     # _supertrend_30T = supertrend_strategy("30T", price, symbol)
@@ -61,6 +62,7 @@ def perform(price: float, subject: Subject) -> dict:
         _supertrend_T,
         _supertrend_dir_T,
         _supertrend_3T,
+        #_supertrend_dir_3T,
     ]
 
     subject.verb, op_strat_results = get_verb_from(open_strategies,

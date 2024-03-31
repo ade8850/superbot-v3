@@ -2,6 +2,7 @@ import pulumi
 from pulumi import Config
 from pulumi_gcp.artifactregistry import Repository
 from pulumi_gcp.pubsub import Topic
+from pulumi_gcp.firestore import Database
 from pulumi_kubernetes.core.v1 import EnvVarArgs
 
 from krules_dev import sane_utils
@@ -22,6 +23,17 @@ gcp_repository = Repository.get(
         lambda repository: repository.get("id")
     )
 )
+
+# datastore = Database.get(
+#         "datastore",
+#     base_stack_ref.get_output(
+#         "datastore"
+#     ).apply(
+#         lambda datastore: datastore.get("id")
+#     )
+# )
+
+
 
 # my_topic = Topic.get(
 #     "my-topic",
@@ -63,7 +75,7 @@ deployment = GkeDeployment(
             ),
             EnvVarArgs(
                 name="LEVERAGE",
-                value="10"
+                value="1"
             ),
             EnvVarArgs(
                 name="RESET_LIMIT_ON_EXIT",

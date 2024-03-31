@@ -63,7 +63,7 @@ deployment = GkeDeployment(
             ),
             EnvVarArgs(
                 name="LEVERAGE",
-                value="10"
+                value="1"
             ),
             EnvVarArgs(
                 name="RESET_LIMIT_ON_EXIT",

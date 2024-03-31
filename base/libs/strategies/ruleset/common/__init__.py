@@ -8,35 +8,18 @@ from krules_core.base_functions.filters import Filter, OnSubjectPropertyChanged
 from krules_core.base_functions.processing import Process, SetSubjectProperty, StoreSubject
 from krules_core.models import Rule
 
+from app_common.utils import calculate_pnl
 from datastore.ruleset_functions import DatastoreEntityStore
 from strategies import strategy
 from strategies.limit_price import set_limit_price
 
 from app_common import mock
+from strategies.strategy import leverage, fee
 
 RESET_LIMIT_ON_EXIT = bool(eval(os.environ.get('RESET_LIMIT_ON_EXIT', "1")))
 MOCK_STRATEGY = bool(os.environ.get("MOCK_STRATEGY", "1"))
 
 rulesdata: List[Rule] = [
-    # Rule(
-    #     name="on-verb-change-cm-publish",
-    #     subscribe_to=[
-    #         event_types.SubjectPropertyChanged
-    #     ],
-    #     description="""
-    #         Verb is changed, updates companion
-    #     """,
-    #     filters=[
-    #         OnSubjectPropertyChanged("verb")
-    #     ],
-    #     processing=[
-    #         Process(
-    #             lambda self: strategy.publish(
-    #                 verb=self.payload.get("value"),
-    #             )
-    #         ),
-    #     ]
-    # ),
     Rule(
         name="on-action-set-limit-price",
         subscribe_to=[
@@ -71,6 +54,14 @@ rulesdata: List[Rule] = [
                 lambda self: strategy.publish(
                     limit_price=self.payload.get("value"),
                     limit_price_reason=self.subject.get("limit_price_reason", default=None),
+                    estimated_pnl=calculate_pnl(
+                        margin=self.subject.get("margin", default=100),
+                        side=self.subject.get("action"),
+                        leverage=leverage,
+                        fee=fee,
+                        entry_price=self.subject.get("action_entry_price"),
+                        cur_price=self.subject.get("price"),
+                    )
                 )
             ),
         ]
@@ -152,6 +143,28 @@ rulesdata: List[Rule] = [
             ),
             SetSubjectProperty(
                 "action", "ready", use_cache=False,
+            ),
+        ]
+    ),
+    Rule(
+        name="on-action-stop-cm-reset",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+            Action stop, reset companion fields when limit does not reset
+        """,
+        filters=[
+            Filter(not RESET_LIMIT_ON_EXIT),
+            OnSubjectPropertyChanged("action", lambda value: value == "stop"),
+        ],
+        processing=[
+            Process(
+                lambda self: strategy.publish(
+                    limit_price_reason="hold",
+                    estimated_pnl=None,
+                    limit_price=self.subject.get("limit_price", default=None)
+                )
             ),
         ]
     ),
