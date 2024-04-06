@@ -60,7 +60,7 @@ rulesdata: List[Rule] = [
                         leverage=leverage,
                         fee=fee,
                         entry_price=self.subject.get("action_entry_price"),
-                        cur_price=self.subject.get("price"),
+                        cur_price=self.payload.get("value"),
                     )
                 )
             ),

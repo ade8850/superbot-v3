@@ -20,14 +20,10 @@ def perform(price: float, subject: Subject) -> dict:
     _supertrend_T = supertrend_strategy("T", price, symbol)
     _supertrend_dir_T = supertrend_dir_strategy("T", price, symbol)
     _supertrend_3T = supertrend_strategy("3T", price, symbol)
-    #_supertrend_dir_3T = supertrend_dir_strategy("3T", price, symbol)
-    # _supertrend_5T = supertrend_strategy("5T", price, symbol)
-    # _supertrend_15T = supertrend_strategy("15T", price, symbol)
-    # _supertrend_30T = supertrend_strategy("30T", price, symbol)
-    # _supertrend_H = supertrend_strategy("H", price, symbol)
-    # _supertrend_2H = supertrend_strategy("2H", price, symbol)
-    # _supertrend_4H = supertrend_strategy("4H", price, symbol)
-    # # _ema_100_T = ema_strategy("T", 100, price, symbol)
+    _supertrend_dir_3T = supertrend_dir_strategy("3T", price, symbol)
+    #_supertrend_5T = supertrend_strategy("5T", price, symbol)
+    #_supertrend_15T = supertrend_strategy("15T", price, symbol)
+    # _ema_100_T = ema_strategy("T", 100, price, symbol)
 
     return_ = {}
 
@@ -40,7 +36,7 @@ def perform(price: float, subject: Subject) -> dict:
             return_["pnl"] = (pnl, pnl/margin*100)
             new_limit_found = set_limit_price_to_supertrend(
                 price, action_entry_price,
-                ["T", "3T", "5T", "15T"],
+                ["3T", "5T", "15T"],
                 subject, symbol
             )
             return_["new_limit"] = new_limit_found
@@ -63,6 +59,8 @@ def perform(price: float, subject: Subject) -> dict:
         _supertrend_dir_T,
         _supertrend_3T,
         #_supertrend_dir_3T,
+        # _supertrend_5T,
+        # _supertrend_15T,
     ]
 
     subject.verb, op_strat_results = get_verb_from(open_strategies,

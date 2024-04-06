@@ -18,8 +18,8 @@ symbol = get_symbol().get_subject(use_cache_default=False)
 def perform(price: float, subject: Subject) -> dict:
     _limit_price_strategy = limit_price_strategy(price, subject)
     _supertrend_T = supertrend_strategy("T", price, symbol)
-    #_supertrend_dir_T = supertrend_dir_strategy("T", price, symbol)
-    #_supertrend_3T = supertrend_strategy("3T", price, symbol)
+    _supertrend_dir_T = supertrend_dir_strategy("T", price, symbol)
+    _supertrend_3T = supertrend_strategy("3T", price, symbol)
     #_supertrend_dir_3T = supertrend_dir_strategy("3T", price, symbol)
     # _supertrend_5T = supertrend_strategy("5T", price, symbol)
     # _supertrend_15T = supertrend_strategy("15T", price, symbol)
@@ -48,11 +48,11 @@ def perform(price: float, subject: Subject) -> dict:
         _, limit = _limit_price_strategy
         # _, ema_100_T = _ema_100_T
         _, st1 = _supertrend_T
-        #_, st3 = _supertrend_3T
+        _, st3 = _supertrend_3T
 
         _neg = lambda strategy: is_opposite(action, strategy)
 
-        if _neg(limit) and _neg(st1):
+        if _neg(limit) and _neg(st1) and _neg(st3):
             #reason = new_limit_found is None and "loss" or "profit"
             # symbol.set("supertrend_dir_T", None, muted=True, use_cache=False)
             set_action("stop", reason="strategy", subject=subject)
@@ -60,8 +60,8 @@ def perform(price: float, subject: Subject) -> dict:
     open_strategies = [
         _limit_price_strategy,
         _supertrend_T,
-        #_supertrend_dir_T,
-        #_supertrend_3T,
+        _supertrend_dir_T,
+        _supertrend_3T,
         #_supertrend_dir_3T,
     ]
 
