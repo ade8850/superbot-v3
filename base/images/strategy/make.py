@@ -16,14 +16,18 @@ base_outputs = get_stack_outputs("base")
 sane_utils.make_prepare_build_context_recipes(
     image_base=base_outputs.get("ruleset-image-base").get("repo_digest"),
     baselibs=[
+        "app_common",
         "celery_app",
         "bybit",
-        "app_common",
-        "technical_analysis",
+        "datastore",
+        "strategies",
     ],
     sources=[
-        "tasks.py",
+        "requirements.txt",
+        "__app__.py",
         "ruleset.py",
+        "ruleset_functions",
+        "this_strategy.py",
         ("ipython_config.py", "/root/.ipython/profile_default/"),
     ],
 )

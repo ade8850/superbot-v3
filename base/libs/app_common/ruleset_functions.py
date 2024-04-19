@@ -1,10 +1,11 @@
 from krules_core.base_functions.processing import ProcessingFunction
 
-#from krules_companion_client.http import HttpClient
+# from krules_companion_client.http import HttpClient
 
-#cm_client = HttpClient()
+# cm_client = HttpClient()
 
 from celery_app.tasks import cm_publish
+
 
 def _guess_entity_and_group_from_subject(subject_name):
     if subject_name.startswith('symbol:'):

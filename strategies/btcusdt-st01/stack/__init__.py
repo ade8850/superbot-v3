@@ -17,32 +17,9 @@ base_stack_ref = get_stack_reference("base")
 
 gcp_repository = Repository.get(
     "gcp_repository",
-    base_stack_ref.get_output(
-        "docker-repository"
-    ).apply(
-        lambda repository: repository.get("id")
-    )
+    base_stack_ref.require_output("docker-repository.id")
 )
 
-# datastore = Database.get(
-#         "datastore",
-#     base_stack_ref.get_output(
-#         "datastore"
-#     ).apply(
-#         lambda datastore: datastore.get("id")
-#     )
-# )
-
-
-
-# my_topic = Topic.get(
-#     "my-topic",
-#     base_stack_ref.get_output(
-#         "topics"
-#     ).apply(
-#         lambda topics: topics.get("my-topic").get("id")
-#     )
-# )
 
 deployment = GkeDeployment(
     app_name,

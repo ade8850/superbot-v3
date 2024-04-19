@@ -4,12 +4,11 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 import pytz
-from krules_fastapi_env import KrulesApp
 from pybit.unified_trading import WebSocket
 
 from bybit.models import TickerMessage
+from krules_fastapi_env import KrulesApp
 from strategies import strategy
-from strategies.common import get_verb_from
 from strategies.common.action import set_action
 
 ws: WebSocket | None = None

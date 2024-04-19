@@ -11,24 +11,17 @@ app_name = sane_utils.check_env("APP_NAME")
 project_name = sane_utils.check_env("PROJECT_NAME")
 target = sane_utils.get_target()
 
-base_outputs = get_stack_outputs("base")
+strategy_base_outputs = get_stack_outputs("strategy-base")
 
 sane_utils.make_prepare_build_context_recipes(
-    image_base=base_outputs.get("ruleset-image-base").get("repo_digest"),
+    image_base=strategy_base_outputs.get("strategy-image-base").get("repo_digest"),
     baselibs=[
-        "app_common",
-        "celery_app",
-        "bybit",
-        "datastore",
-        "strategies",
     ],
     sources=[
         "requirements.txt",
-        "__app__.py",
         "ruleset.py",
         "ruleset_functions",
         "this_strategy.py",
-        ("ipython_config.py", "/root/.ipython/profile_default/"),
     ],
 )
 

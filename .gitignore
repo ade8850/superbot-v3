@@ -13,4 +13,5 @@ terraform/terraform.tfvars.json
 **/*/__pycache__/
 **/*/.build/
 .envrc
+base/companion-config.yaml
 

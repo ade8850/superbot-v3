@@ -8,20 +8,15 @@ from krules_dev.sane_utils.pulumi.components import (
     ArtifactRegistry, SaneDockerImage, FirestoreDB,
 )
 
-topic_procevents = PubSubTopic("procevents")
-topic_bybit_public = PubSubTopic("bybit-public")
-topic_scheduler_errors = PubSubTopic("scheduler-errors")
-
-pulumi.export("topics", {
-    "procevents": topic_procevents,
-    "bybit-public": topic_bybit_public,
-    "scheduler-errors": topic_scheduler_errors,
-})
+pulumi.export("topics.bybit_public.id", PubSubTopic("bybit-public").id)
+pulumi.export("topics.procevents.id", PubSubTopic("procevents").id)
+pulumi.export("topics.scheduler_errors.id", PubSubTopic("scheduler-errors").id)
+pulumi.export("topics.companion_callbacks.id", PubSubTopic("companion-callbacks").id)
 
 docker_registry = ArtifactRegistry(
     "docker-registry",
 )
-pulumi.export("docker-repository", docker_registry.repository)
+pulumi.export("docker-repository.id", docker_registry.repository.id)
 
 namespace = kubernetes.core.v1.Namespace(
     "gke-namespace",

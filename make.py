@@ -59,6 +59,9 @@ def updated_all():
 
     with sh.pushd(root_dir):
         _make()
+    with sh.pushd(os.path.join(root_dir, "base", "images", "strategy")):
+        _make()
+
 
 
 sane_utils.make_clean_recipe(

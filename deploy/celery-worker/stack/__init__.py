@@ -16,28 +16,17 @@ base_stack_ref = get_stack_reference("base")
 
 gcp_repository = Repository.get(
     "gcp_repository",
-    base_stack_ref.get_output(
-        "docker-repository"
-    ).apply(
-        lambda repository: repository.get("id")
-    )
+    base_stack_ref.require_output("docker-repository.id")
 )
 
 topic_scheduler_errors = Topic.get(
     "scheduler-errors",
-    base_stack_ref.get_output(
-        "topics"
-    ).apply(
-        lambda topics: topics.get("scheduler-errors").get("id")
-    )
+    base_stack_ref.require_output("topics.scheduler_errors.id")
 )
+
 topic_procevents = Topic.get(
     "procevents",
-    base_stack_ref.get_output(
-        "topics"
-    ).apply(
-        lambda topics: topics.get("procevents").get("id")
-    )
+    base_stack_ref.require_output("topics.procevents.id")
 )
 
 deployment = GkeDeployment(

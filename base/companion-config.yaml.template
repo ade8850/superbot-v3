@@ -1,0 +1,6 @@
+channels:
+  callbacks:
+    code: pub_sub
+    name: callbacks
+    params:
+      topic: {{ topic_companion_callbacks }}
