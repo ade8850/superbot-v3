@@ -2,7 +2,7 @@ import pulumi
 import pulumi_gcp as gcp
 import pulumi_kubernetes as kubernetes
 from pulumi import Config
-from pulumi_kubernetes.core.v1 import EnvVarArgs
+from pulumi_kubernetes.core.v1 import EnvVarArgs, EnvVarSourceArgs, SecretKeySelectorArgs
 
 from krules_dev import sane_utils
 from krules_dev.sane_utils import get_stack_reference
@@ -18,11 +18,7 @@ base_stack_ref = get_stack_reference("base")
 
 gcp_repository = gcp.artifactregistry.Repository.get(
     "gcp_repository",
-    base_stack_ref.get_output(
-        "docker-repository"
-    ).apply(
-        lambda repository: repository.get("id")
-    )
+    base_stack_ref.require_output("docker-repository.id")
 )
 
 deployment = GkeDeployment(
@@ -31,7 +27,7 @@ deployment = GkeDeployment(
     gcp_repository=gcp_repository,
     access_secrets=[
         "subjects_redis_url",
-        "celery_broker",
+        #"celery_broker",
     ],
     app_container_pvc_mounts={
         "jupyter-data": {
@@ -68,6 +64,15 @@ deployment = GkeDeployment(
                 name="ALL_SYMBOLS",
                 value=sane_utils.get_var_for_target("all_symbols")
             ),
+            EnvVarArgs(
+                name="CELERY_BROKER",
+                value_from=EnvVarSourceArgs(
+                    secret_key_ref=SecretKeySelectorArgs(
+                        name="common-secrets",
+                        key="celery_broker",
+                    )
+                )
+            )
         ]
     }
 )

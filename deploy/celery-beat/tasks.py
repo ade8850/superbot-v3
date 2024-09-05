@@ -1,8 +1,6 @@
 from celery_app.tasks import *
 
 
-
-
 @app.on_after_configure.connect
 def add_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(60, companion_check_strategies, name='periodically check strategies from companions')

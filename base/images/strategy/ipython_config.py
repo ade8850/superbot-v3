@@ -4,9 +4,10 @@ c.InteractiveShellApp.exec_lines = [
     'from krules_core.providers import subject_factory',
     'from krules_core.providers import configs_factory',
     'from krules_core.providers import event_router_factory',
-    'from strategies.strategy import get_subject',
+    #'from strategies.strategy import get_subject',
     'from strategies.limit_price import set_limit_price',
     'from strategies.common import set_verb',
-    'strategy = get_subject()',
+    #'strategy = get_subject()',
     'router = event_router_factory()',
+    'from app_common.ioc import container',
 ]

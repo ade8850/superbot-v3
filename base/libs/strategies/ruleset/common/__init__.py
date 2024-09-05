@@ -1,6 +1,8 @@
 import os
 import time
 from datetime import datetime
+from importlib import import_module
+
 from typing import List
 
 from krules_core import event_types
@@ -14,10 +16,11 @@ from strategies import strategy
 from strategies.limit_price import set_limit_price
 
 from app_common import mock
+from strategies.models import StrategySettings
 from strategies.strategy import leverage, fee
 
-RESET_LIMIT_ON_EXIT = bool(eval(os.environ.get('RESET_LIMIT_ON_EXIT', "1")))
-MOCK_STRATEGY = bool(os.environ.get("MOCK_STRATEGY", "1"))
+this_strategy = import_module("this_strategy")
+config: StrategySettings = this_strategy.config
 
 rulesdata: List[Rule] = [
     Rule(
@@ -107,7 +110,7 @@ rulesdata: List[Rule] = [
             Action stop, reset limit price
         """,
         filters=[
-            Filter(RESET_LIMIT_ON_EXIT),
+            Filter(config.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -125,7 +128,7 @@ rulesdata: List[Rule] = [
             Also, save on datastore
         """,
         filters=[
-            Filter(MOCK_STRATEGY),
+            Filter(config.isMockStrategy),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -155,7 +158,7 @@ rulesdata: List[Rule] = [
             Action stop, reset companion fields when limit does not reset
         """,
         filters=[
-            Filter(not RESET_LIMIT_ON_EXIT),
+            Filter(not config.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[

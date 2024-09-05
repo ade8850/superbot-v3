@@ -2,12 +2,12 @@ from typing import Tuple, Sequence, Callable
 
 from krules_core.subject.storaged_subject import Subject
 
-from strategies.strategy import get_subject
+#from strategies.strategy import get_subject
 
 
 def set_verb(verb: str | None, subject: Subject = None) -> str | None:
-    if subject is None:
-        subject = get_subject()
+    #if subject is None:
+    #    subject = get_subject()
     assert (verb in ["Buy", "Sell", None])
     _, old_verb = subject.verb = verb
     return old_verb

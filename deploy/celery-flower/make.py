@@ -15,6 +15,10 @@ base_outputs = get_stack_outputs("base")
 
 sane_utils.make_prepare_build_context_recipes(
     image_base="mher/flower:latest",
+    sources=[
+        "start.sh",
+        "flowerconfig.py"
+    ]
 )
 
 sane_utils.make_pulumi_stack_recipes(

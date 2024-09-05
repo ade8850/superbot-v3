@@ -24,6 +24,7 @@ sane_utils.make_prepare_build_context_recipes(
     ],
     sources=[
         "requirements.txt",
+        "default.yaml",
         "__app__.py",
         "ruleset.py",
         "ruleset_functions",

@@ -4,7 +4,11 @@ from typing import Tuple, List
 from krules_core.subject.storaged_subject import Subject
 
 from app_common.utils import calculate_pnl
-from strategies.strategy import get_symbol, leverage, fee
+#from strategies.strategy import get_symbol, leverage, fee
+
+print("############################### supertrend/__init__.py ############################### TODO !!!!")
+fee=0.00055
+leverage=1
 
 
 def set_limit_price_to_supertrend(price: float, entry_price: float, intervals: List[str], subject: Subject,
@@ -63,8 +67,8 @@ def strategy(interval: str, price: float, symbol: Subject = None) \
 def dir_strategy(interval: str, price: float, symbol: Subject = None) \
         -> Tuple[str, str | None]:
     this_ = f"supertrend_dir_{interval}"
-    if symbol is None:
-        symbol = get_symbol().get_subject()
+#    if symbol is None:
+#        symbol = get_symbol().get_subject()
 
     if symbol.get(this_, default=None) == 1:
         return this_, "Buy"

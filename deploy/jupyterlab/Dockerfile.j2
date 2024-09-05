@@ -57,8 +57,6 @@ RUN cd /app/{{ user_lib }} && test -f requirements.txt && pip3 install -r requir
 ADD {{ source.origin }} {{ source.destination }}
 {% endfor %}
 
-RUN pip install poetry
-RUN cd /app/cm-client && poetry lock && poetry install
 
 # !! I loose deps somewhere
 RUN pip install --no-cache-dir --no-deps \

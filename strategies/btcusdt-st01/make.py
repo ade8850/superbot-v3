@@ -22,6 +22,7 @@ sane_utils.make_prepare_build_context_recipes(
         "ruleset.py",
         "ruleset_functions",
         "this_strategy.py",
+        "config.ini",
     ],
 )
 

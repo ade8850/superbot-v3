@@ -1,0 +1,7 @@
+# provider: bybit
+strategy:
+  leverage: 1
+
+providers:
+  bybit:
+    fee: 0.00055

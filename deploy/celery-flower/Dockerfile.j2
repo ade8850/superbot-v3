@@ -4,3 +4,19 @@ FROM {{ image_base }}
 ADD {{ source.origin }} {{ source.destination }}
 {% endfor %}
 
+USER root
+RUN pip install --no-cache-dir --upgrade google-cloud-secret-manager sh
+
+USER flower
+
+# Copy our custom start script
+COPY --chown=flower:flower start.sh /data/start.sh
+COPY --chown=flower:flower flowerconfig.py /data/flowerconfig.py
+RUN chmod +x /data/start.sh
+
+# Set the working directory
+WORKDIR /data
+
+
+# Set the entrypoint to our custom script
+ENTRYPOINT ["/data/start.sh"]

@@ -1,26 +1,38 @@
-from krules_core.subject.storaged_subject import Subject
-
+from app_common.models import Symbol
 from app_common.utils import calculate_pnl
+from krules_core.subject.storaged_subject import Subject
 from strategies.common import get_verb_from
 from strategies.common.action import set_action
 from strategies.common.verb import is_opposite
 from strategies.limit_price import strategy as limit_price_strategy
-from strategies.strategy import get_symbol, leverage, fee
+#from strategies.models import StrategySettings
 from strategies.supertrend import (
     strategy as supertrend_strategy,
     dir_strategy as supertrend_dir_strategy,
     set_limit_price_to_supertrend,
 )
 
-symbol = get_symbol().get_subject(use_cache_default=False)
+#symbol = get_symbol().get_subject(use_cache_default=False)
+
+# config = StrategySettings(
+#     symbol=Symbol(
+#         name="btcusdt",
+#         provider="bybit",
+#         category="linear",
+#     ),
+#     leverage=1,
+#     isMockStrategy=True,
+#     resetLimitOnExit=True,
+# )
+
 
 
 def perform(price: float, subject: Subject) -> dict:
     _limit_price_strategy = limit_price_strategy(price, subject)
-    _supertrend_T = supertrend_strategy("T", price, symbol)
-    _supertrend_dir_T = supertrend_dir_strategy("T", price, symbol)
-    _supertrend_3T = supertrend_strategy("3T", price, symbol)
-    _supertrend_dir_3T = supertrend_dir_strategy("3T", price, symbol)
+    _supertrend_T = supertrend_strategy("T", price, config.symbol.get_subject())
+    _supertrend_dir_T = supertrend_dir_strategy("T", price, config.symbol.get_subject())
+    _supertrend_3T = supertrend_strategy("3T", price, config.symbol.get_subject())
+    _supertrend_dir_3T = supertrend_dir_strategy("3T", price, config.symbol.get_subject())
     #_supertrend_5T = supertrend_strategy("5T", price, symbol)
     #_supertrend_15T = supertrend_strategy("15T", price, symbol)
     # _ema_100_T = ema_strategy("T", 100, price, symbol)
@@ -32,12 +44,12 @@ def perform(price: float, subject: Subject) -> dict:
         action_entry_price = subject.get("action_entry_price", default=None)
         if action_entry_price is not None:
             margin = subject.get("margin", default=100)
-            pnl = calculate_pnl(margin, action, leverage, fee, action_entry_price, price)
+            pnl = calculate_pnl(margin, action, config.leverage, config.fee, action_entry_price, price)
             return_["pnl"] = (pnl, pnl/margin*100)
             new_limit_found = set_limit_price_to_supertrend(
                 price, action_entry_price,
                 ["3T", "5T", "15T"],
-                subject, symbol
+                subject, config.symbol.get_subject()
             )
             return_["new_limit"] = new_limit_found
 

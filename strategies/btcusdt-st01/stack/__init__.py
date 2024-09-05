@@ -35,35 +35,7 @@ deployment = GkeDeployment(
     app_container_kwargs={
         "env": [
             EnvVarArgs(
-                name="SYMBOL",
-                value="BTCUSDT"
-            ),
-            EnvVarArgs(
-                name="PROVIDER",
-                value="BYBIT"
-            ),
-            EnvVarArgs(
-                name="CATEGORY",
-                value="LINEAR"
-            ),
-            EnvVarArgs(
-                name="TAKER_FEE",
-                value="0.00055"
-            ),
-            EnvVarArgs(
-                name="LEVERAGE",
-                value="1"
-            ),
-            EnvVarArgs(
-                name="RESET_LIMIT_ON_EXIT",
-                value="1"
-            ),
-            EnvVarArgs(
                 name="SET_LIMIT_TO_SUPERTREND_INCLUDE_FEE",
-                value="1"
-            ),
-            EnvVarArgs(
-                name="MOCK_STRATEGY",
                 value="1"
             ),
         ]

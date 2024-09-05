@@ -28,7 +28,6 @@ sane_utils.make_prepare_build_context_recipes(
         #("start-notebook.sh", "/usr/local/bin/"),
         #("start-singleuser.py", "/usr/local/bin/"),
         #("start-singleuser.sh", "/usr/local/bin/"),
-        "cm-client",
         ("jupyter_server_config.py", "/etc/jupyter/"),
         ("ipython_config.py", "/root/.ipython/profile_default/"),
     ]

@@ -14,23 +14,33 @@ app_name = sane_utils.check_env("app_name")
 
 base_stack_ref = get_stack_reference("base")
 
+# gcp_repository = Repository.get(
+#     "gcp_repository",
+#     base_stack_ref.get_output(
+#         "docker-repository"
+#     ).apply(
+#         lambda repository: repository.get("id")
+#     )
+# )
+
 gcp_repository = Repository.get(
     "gcp_repository",
-    base_stack_ref.get_output(
-        "docker-repository"
-    ).apply(
-        lambda repository: repository.get("id")
-    )
+    base_stack_ref.require_output("docker-repository.id")
 )
 
 topic_procevents = Topic.get(
     "procevents",
-    base_stack_ref.get_output(
-        "topics"
-    ).apply(
-        lambda topics: topics.get("procevents").get("id")
-    )
+    base_stack_ref.require_output("topics.procevents.id")
 )
+
+# topic_procevents = Topic.get(
+#     "procevents",
+#     base_stack_ref.get_output(
+#         "topics"
+#     ).apply(
+#         lambda topics: topics.get("procevents").get("id")
+#     )
+# )
 
 
 # topic_bybit_public = Topic.get(

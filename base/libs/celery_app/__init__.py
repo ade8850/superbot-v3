@@ -31,8 +31,8 @@ app = Celery(
 
 
 class CeleryConfig:
-    task_serializer = "pickle"
-    result_serializer = "pickle"
+    task_serializer = "json"
+    result_serializer = "json"
     event_serializer = "json"
     accept_content = ["application/json", "application/x-python-serialize"]
     result_accept_content = ["application/json", "application/x-python-serialize"]
