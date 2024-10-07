@@ -19,7 +19,7 @@ sane_utils.make_prepare_build_context_recipes(
     ],
     sources=[
         "requirements.txt",
-        "ruleset.py",
+#        "ruleset.py",
         "ruleset_functions",
         "this_strategy.py",
         "config.ini",

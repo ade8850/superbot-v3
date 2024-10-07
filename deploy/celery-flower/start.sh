@@ -4,6 +4,7 @@ import os
 import sys
 from google.cloud import secretmanager
 from sh import celery, ErrorReturnCode
+import signal
 
 # Parse the secret path
 secret_path = os.environ.get('CELERY_BROKER_SECRET_PATH')
@@ -31,6 +32,18 @@ except Exception as e:
 flower_cmd = celery.bake("--broker=" + broker_url, "flower", "--conf=/data/flowerconfig.py")
 
 print("Starting Flower...")
+
+def signal_handler(signum, frame):
+    print(f"Received signal {signum}. Terminating Flower gracefully...")
+    try:
+        flower_cmd.terminate() # Terminate the celery process gracefully
+    except:
+        pass
+    sys.exit(0) # Exit with a zero exit code
+
+# Register signal handlers
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 try:
     # Run Flower

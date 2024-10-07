@@ -57,9 +57,11 @@ def updated_all():
         log.info(f"Running make.py in {os.getcwd()}")
         python.bake("make.py")(_fg=True)
 
-    with sh.pushd(root_dir):
-        _make()
+    # with sh.pushd(root_dir):
+    #     _make()
     with sh.pushd(os.path.join(root_dir, "base", "images", "strategy")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st01")):
         _make()
 
 

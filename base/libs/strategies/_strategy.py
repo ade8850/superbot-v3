@@ -4,7 +4,7 @@ import os
 from krules_core.providers import subject_factory
 from krules_core.subject.storaged_subject import Subject
 
-from app_common.models import Symbol
+from strategy_common.models import Symbol
 from celery_app.tasks import cm_publish
 
 this_strategy = importlib.import_module("this_strategy")

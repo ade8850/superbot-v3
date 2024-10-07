@@ -55,7 +55,7 @@ def bybit_update_instrument_info(*args, **kwargs):
 def companion_check_strategies(*args, **kwargs):
     from krules_companion_client.http import HttpClient
     client = HttpClient()
-    client.callback("strategies.bybit", channels=["callbacks"],  message="scheck_strategies")
+    client.callback("strategies.bybit", channels=["callbacks"],  message="check_strategies")
 
 
 @app.task(base=BaseTask, bind=False, ignore_result=True)

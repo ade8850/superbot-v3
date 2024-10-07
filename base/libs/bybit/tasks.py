@@ -7,7 +7,7 @@ from typing import List
 import pandas as pd
 from pybit.unified_trading import HTTP
 
-from app_common.models import Interval, Symbol
+from  app_common.models import Interval, Symbol
 from bybit.models import KlineMessageData, GetKlineAPIResponse, GetInstrumentInfoAPIResponse
 from technical_analysis import TechnicalAnalysis
 
@@ -21,7 +21,11 @@ def _get_session() -> HTTP:
     return HTTP(testnet=bool(eval(os.environ.get("BYBIT_TESTNET", "0"))))
 
 
-def process_kline_data(task, interval: Interval, symbol: Symbol, kline_data: KlineMessageData):
+def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
+    interval = Interval.model_validate(interval)
+    symbol = Symbol.model_validate(symbol)
+    kline_data = KlineMessageData.model_validate(kline_data)
+
     subject = symbol.get_subject()
     records = subject.get(f"_kline_records_{interval.freq}", default=[]) if kline_use_cached_results else []
     if len(records) < kline_limit_size:

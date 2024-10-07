@@ -9,8 +9,7 @@ from pybit.unified_trading import WebSocket
 
 from bybit.models import TickerMessage
 from strategies import strategy
-from strategies.common import get_verb_from
-from strategies.common.action import set_action
+from strategy_common.action import set_action
 
 ws: WebSocket | None = None
 

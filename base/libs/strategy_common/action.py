@@ -1,13 +1,12 @@
 import uuid
 
-from krules_core.subject.storaged_subject import Subject
+from strategy_common.ioc import container
 
-#from strategies.strategy import get_subject
+strategy = container.strategy()
 
 
-def set_action(action: str, reason: str = "shell", subject: Subject = None):
-#    if subject is None:
-#        subject = get_subject
+def set_action(action: str, reason: str = "shell"):
+    subject = strategy.get_subject()
     if action in ["Buy", "Sell"]:
         subject.set("action_key", uuid.uuid4().hex, muted=True, use_cache=False)
         subject.set("action_start_reason", reason, muted=True, use_cache=False)
@@ -17,5 +16,3 @@ def set_action(action: str, reason: str = "shell", subject: Subject = None):
         raise ValueError(f"Invalid action: {action}")
     subject.set("action", action, use_cache=False)
     return action
-
-

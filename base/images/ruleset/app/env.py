@@ -16,15 +16,7 @@ cache_secrets = {}
 
 
 def _get_topic_id(subject, event_type):
-    # TODO: remove me
-    from krules_core.providers import subject_factory, event_router_factory
-    print(f"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ _get_topic_id> {str(subject)}, {str(event_type)}")
-    subject = subject_factory(subject)
-    print(f">>>> subject storage: {subject._storage}")
-    print(f">>>> rules: {str(event_router_factory()._callables)}")
-    # END TODO
     if event_type == RULE_PROC_EVENT:
-        print(">>>>> GOT PROC EVENT")
         return os.environ.get("PROCEVENTS_TOPIC", os.environ.get("DEFAULTSINK_TOPIC"))
     else:
         topic_name = os.environ.get("DEFAULTSINK_TOPIC")

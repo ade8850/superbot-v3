@@ -12,6 +12,7 @@ pulumi.export("topics.bybit_public.id", PubSubTopic("bybit-public").id)
 pulumi.export("topics.procevents.id", PubSubTopic("procevents").id)
 pulumi.export("topics.scheduler_errors.id", PubSubTopic("scheduler-errors").id)
 pulumi.export("topics.companion_callbacks.id", PubSubTopic("companion-callbacks").id)
+pulumi.export("topics.signals.id", PubSubTopic("signals").id)
 
 docker_registry = ArtifactRegistry(
     "docker-registry",

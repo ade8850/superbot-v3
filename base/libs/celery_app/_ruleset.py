@@ -7,7 +7,7 @@ from krules_core.base_functions.processing import Process
 from krules_core.event_types import SUBJECT_PROPERTY_CHANGED
 from krules_core.models import Rule
 
-from app_common.ruleset_functions import CompanionPublish
+from strategy_common.ruleset_functions import CompanionPublish
 
 rulesdata: Sequence[Rule] = [
     Rule(

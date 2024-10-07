@@ -2,8 +2,6 @@ from typing import Tuple, Sequence, Callable
 
 from krules_core.subject.storaged_subject import Subject
 
-#from strategies.strategy import get_subject
-
 
 def set_verb(verb: str | None, subject: Subject = None) -> str | None:
     #if subject is None:

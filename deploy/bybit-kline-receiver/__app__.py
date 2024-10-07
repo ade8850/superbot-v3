@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 import pytz
+import rich
 from contexttimer import Timer
 from krules_fastapi_env import KrulesApp
 from pybit.unified_trading import WebSocket
@@ -32,7 +33,7 @@ async def lifespan(app: KrulesApp):
                 app.logger.info(f">received {symbol}", extra={"props": {"latency_ms": latency_ms}})
                 for data in message.data:
                     if data.confirm:
-                        app.logger.info(f">CONFIRMED [{symbol}]<")
+                        app.logger.debug(f">CONFIRMED [{symbol}]<")
                         cm_publish.delay(
                             group=f"symbols.{symbol.provider}.{symbol.category}",
                             entity=symbol.name,
@@ -46,13 +47,15 @@ async def lifespan(app: KrulesApp):
                                 weekday=data.start.isoweekday(),
                             )
                         )
+                        app.logger.info(">PROCESSING KLINE DATA")
                         for interval in INTERVALS:
+                            app.logger.info(f">>for symbol {symbol} and interval {interval}")
                             bybit_process_kline_data.delay(
-                                interval=interval,
-                                symbol=symbol,
-                                kline_data=data,
+                                interval=interval.model_dump(),
+                                symbol=symbol.model_dump(),
+                                kline_data=data.model_dump(),
                             )
-            app.logger.info(f"<processed {symbol}", extra={"props": {"elapsed_ms": t.elapsed}})
+            app.logger.debug(f"<processed {symbol}", extra={"props": {"elapsed_ms": t.elapsed}})
         except Exception as ex:
             app.logger.exception(ex)
 

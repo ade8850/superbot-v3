@@ -1,8 +1,4 @@
-import os
-import time
 from datetime import datetime
-from importlib import import_module
-
 from typing import List
 
 from krules_core import event_types
@@ -10,17 +6,15 @@ from krules_core.base_functions.filters import Filter, OnSubjectPropertyChanged
 from krules_core.base_functions.processing import Process, SetSubjectProperty, StoreSubject
 from krules_core.models import Rule
 
-from app_common.utils import calculate_pnl
+from strategies.outer_limit_price import set_outer_limit_price
+from strategy_common import mock
+from strategy_common.ioc import container
+from strategy_common.models import Strategy
+from strategy_common.utils import calculate_pnl
 from datastore.ruleset_functions import DatastoreEntityStore
-from strategies import strategy
 from strategies.limit_price import set_limit_price
 
-from app_common import mock
-from strategies.models import StrategySettings
-from strategies.strategy import leverage, fee
-
-this_strategy = import_module("this_strategy")
-config: StrategySettings = this_strategy.config
+strategy: Strategy = container.strategy()
 
 rulesdata: List[Rule] = [
     Rule(
@@ -37,7 +31,25 @@ rulesdata: List[Rule] = [
         ],
         processing=[
             Process(
-                lambda subject: set_limit_price(reason="action", subject=subject)
+                lambda subject: set_limit_price(reason="action")
+            ),
+        ]
+    ),
+    Rule(
+        name="on-action-set-outer-limit-price",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+            New action is set for Buy/Sell, set outer limit price if null
+        """,
+        filters=[
+            OnSubjectPropertyChanged("action", lambda new, old: new in ("Buy", "Sell")),
+            Filter(lambda subject: subject.get("outer_limit_price", default=None) in (None, 0))
+        ],
+        processing=[
+            Process(
+                lambda subject: set_outer_limit_price(reason="action")
             ),
         ]
     ),
@@ -58,13 +70,31 @@ rulesdata: List[Rule] = [
                     limit_price=self.payload.get("value"),
                     limit_price_reason=self.subject.get("limit_price_reason", default=None),
                     estimated_pnl=calculate_pnl(
-                        margin=self.subject.get("margin", default=100),
-                        side=self.subject.get("action"),
-                        leverage=leverage,
-                        fee=fee,
-                        entry_price=self.subject.get("action_entry_price"),
-                        cur_price=self.payload.get("value"),
+                        price=self.payload.get("value"),
                     )
+                )
+            ),
+        ]
+    ),
+    Rule(
+        name="on-outer-limit-price-cm-publish",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+            Outer Limit price is changed, updates companion
+        """,
+        filters=[
+            OnSubjectPropertyChanged("outer_limit_price"),
+        ],
+        processing=[
+            Process(
+                lambda self: strategy.publish(
+                    outer_limit_price=self.payload.get("value"),
+                    outer_limit_price_reason=self.subject.get("outer_limit_price_reason", default=None),
+                    # estimated_pnl=calculate_pnl(
+                    #     price=self.payload.get("value"),
+                    # )
                 )
             ),
         ]
@@ -77,6 +107,7 @@ rulesdata: List[Rule] = [
         description="""
             Action is Buy/Sell, 
             - store price into subject
+            - save direction in side property to allow to detect direction changes
             - create datastore ActionTrack entity
         """,
         filters=[
@@ -86,6 +117,9 @@ rulesdata: List[Rule] = [
             SetSubjectProperty(
                 "action_entry_price", lambda subject: subject.get("price"), muted=True,
                 use_cache=False,
+            ),
+            SetSubjectProperty(
+                "side", lambda payload: payload.get("value"), use_cache=False,
             ),
             DatastoreEntityStore(
                 "ActionTrack", key=lambda subject: subject.get("action_key"),
@@ -110,11 +144,11 @@ rulesdata: List[Rule] = [
             Action stop, reset limit price
         """,
         filters=[
-            Filter(config.resetLimitOnExit),
+            Filter(strategy.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
-            Process(lambda subject: set_limit_price(0, reason="action", subject=subject)),
+            Process(lambda subject: set_limit_price(0, reason="action")),
             StoreSubject(),
         ]
     ),
@@ -128,7 +162,7 @@ rulesdata: List[Rule] = [
             Also, save on datastore
         """,
         filters=[
-            Filter(config.isMockStrategy),
+            Filter(strategy.isMockStrategy),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -158,7 +192,7 @@ rulesdata: List[Rule] = [
             Action stop, reset companion fields when limit does not reset
         """,
         filters=[
-            Filter(not config.resetLimitOnExit),
+            Filter(not strategy.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -212,6 +246,24 @@ rulesdata: List[Rule] = [
                 lambda self: strategy.publish(
                     margin=self.payload.get("value"),
                 )
+            ),
+        ]
+    ),
+    Rule(
+        name="on-change-side-reset-limit-price",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+            Reset limit_price on change direction
+        """,
+        filters=[
+            OnSubjectPropertyChanged("side", lambda value: value in ("Buy", "Sell")),
+            Filter(lambda self: self.payload.get("value") != self.subject.get("action"))
+        ],
+        processing=[
+            SetSubjectProperty(
+                "limit_price", lambda subejct: subejct.get("action_entry_price"), use_cache=False,
             ),
         ]
     ),

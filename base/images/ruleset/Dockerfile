@@ -41,7 +41,7 @@ RUN pip install --no-cache-dir --upgrade keyrings.google-artifactregistry-auth \
 #    ;
 
 RUN pip install --no-cache-dir \
-    krules-fastapi-env==0.12.0 \
+    krules-fastapi-env==0.12.1 \
     krules-dispatcher-cloudevents-pubsub==0.12.0 \
     krules-subjects-storage-redis==0.12.0
 

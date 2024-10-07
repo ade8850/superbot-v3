@@ -1,14 +1,13 @@
 from krules_core.subject.storaged_subject import Subject
 
-from app_common.utils import calculate_pnl
+from strategy_common.utils import calculate_pnl
 from strategies.common import get_verb_from
-from strategies.common.action import set_action
-from strategies.common.verb import is_opposite
+from strategy_common.action import set_action
+from strategy_common.verb import is_opposite
 from strategies.limit_price import strategy as limit_price_strategy
 from strategies.strategy import get_symbol, leverage, fee
 from strategies.supertrend import (
     strategy as supertrend_strategy,
-    dir_strategy as supertrend_dir_strategy,
     set_limit_price_to_supertrend,
 )
 

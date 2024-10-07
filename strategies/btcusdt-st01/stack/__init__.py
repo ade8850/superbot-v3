@@ -20,6 +20,10 @@ gcp_repository = Repository.get(
     base_stack_ref.require_output("docker-repository.id")
 )
 
+topic_signals = Topic.get(
+    "signals",
+    base_stack_ref.require_output("topics.signals.id")
+)
 
 deployment = GkeDeployment(
     app_name,
@@ -31,6 +35,17 @@ deployment = GkeDeployment(
     publish_to={
         # "my-topic": my_topic,
     },
+    subscriptions_inject_sidecar=False,
+    subscribe_to=[
+        (
+            "signals", {
+                "topic": topic_signals.name,
+                "project": topic_signals.project,
+                "ack_deadline_seconds": 20,
+                "filter": 'attributes.subject="signal:bybit:perpetual:btcusdt:ema_100_4H"'
+            },
+        ),
+    ],
     datastore_id=f"projects/{sane_utils.get_project_id()}/databases/{sane_utils.get_var_for_target('project_name')}",
     app_container_kwargs={
         "env": [

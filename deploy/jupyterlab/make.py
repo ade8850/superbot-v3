@@ -20,7 +20,7 @@ sane_utils.make_prepare_build_context_recipes(
     baselibs=[
         "celery_app",
         "bybit",
-        "app_common",
+        "strategy_common",
         "technical_analysis",
     ],
     sources=[

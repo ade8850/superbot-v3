@@ -28,6 +28,10 @@ topic_procevents = Topic.get(
     "procevents",
     base_stack_ref.require_output("topics.procevents.id")
 )
+topic_signals = Topic.get(
+    "signals",
+    base_stack_ref.require_output("topics.signals.id")
+)
 
 deployment = GkeDeployment(
     app_name,
@@ -40,6 +44,7 @@ deployment = GkeDeployment(
     publish_to={
         "scheduler-errors": topic_scheduler_errors,
         "procevents": topic_procevents,
+        "signals": topic_signals,
     },
     use_firestore=True,
     app_container_kwargs={
