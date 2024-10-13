@@ -14,7 +14,7 @@ def set_limit_price(price: float = None, reason: str = "shell"):
     subject.set("limit_price", price)
 
 
-def strategy_impl(price: float = None) -> Tuple[str, str | None]:
+def strategy_impl(price: float = None, **kwargs) -> Tuple[str, str | None]:
     this_ = "limit_price"
     subject = strategy.get_subject()
 

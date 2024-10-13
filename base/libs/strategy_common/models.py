@@ -1,10 +1,21 @@
 import os
+from typing import List, Optional, Dict, Any
 
 from krules_core.providers import subject_factory
 from krules_core.subject.storaged_subject import Subject
 from pydantic import BaseModel, Field
 
 from app_common.models import Symbol
+
+
+class StrategyConfig(BaseModel):
+    strategy: str = Field(..., description="The name of the strategy.")
+    groups: List[str] = Field([], description="The groups to which the strategy applies.")
+    kwargs: Dict[str, Any] = Field({}, description="Additional keyword arguments for the strategy.")
+
+
+class SessionConfig(BaseModel):
+    strategies: List[StrategyConfig] = Field(..., description="List of strategies for the session.")
 
 
 class Strategy(BaseModel):
@@ -15,13 +26,18 @@ class Strategy(BaseModel):
     fee: float = Field(0.00055, description="Fee", validation_alias="taker_fee")
     isMockStrategy: bool = Field(..., validation_alias="is_mock_strategy",
                                  description="This is a mock strategy for testing purposes")
-    resetLimitOnExit: bool = Field(...,validation_alias="reset_limit_on_exit",
+    resetLimitOnExit: bool = Field(..., validation_alias="reset_limit_on_exit",
                                    description="Set limit to None when exiting strategy")
     symbol: Symbol = Field(..., description="The symbol to use")
 
     outerLimitFollows: str | None = Field(validation_alias="outer_limit_follows",
                                           description="Move the outer limit following this indicator",
                                           default=None)
+
+    session: SessionConfig = Field(..., description="Session configuration including strategies.")
+
+    class Config:
+        use_enum_values = True
 
     def get_subject(self) -> Subject:
         #if "_subject" not in self or self._subject is None:

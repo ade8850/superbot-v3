@@ -1,0 +1,44 @@
+strategy:
+  is_mock_strategy: true
+  reset_limit_on_exit: false
+  outer_limit_follows: ema_100_15T
+  leverage: 10
+
+  session:
+    strategies:
+      - strategy: outer_limit_price
+        groups:
+          - open
+          - bound
+      - strategy: ema
+        kwargs:
+          interval: H
+          period: 100
+        groups:
+          - open
+          - bound
+      - strategy: ema
+        kwargs:
+          interval: T
+          period: 100
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: T
+        groups:
+          - open
+          - close
+      - strategy: supertrend_dir
+        kwargs:
+          interval: T
+        groups:
+          - open
+
+
+
+symbol:
+  provider: bybit
+  category: linear
+  name: btcusdt

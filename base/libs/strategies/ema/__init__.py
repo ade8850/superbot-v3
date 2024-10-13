@@ -8,7 +8,7 @@ from strategy_common.models import Strategy
 strategy: Strategy = container.strategy()
 
 
-def strategy_impl(interval: str, period: int, price: float) \
+def strategy_impl(interval: str, period: int, price: float, **kwargs) \
         -> Tuple[str, str | None]:
     this_ = f"ema_{period}_{interval}"
     symbol: Subject = strategy.symbol.get_subject()

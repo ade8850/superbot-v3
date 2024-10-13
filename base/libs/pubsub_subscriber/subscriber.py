@@ -32,8 +32,8 @@ class PubSubSubscriber:
                     await func(message)
                     processed = True
                     break
-            if not processed:
-                self.app.logger.warning(f"No matching process function for subject: {subject}")
+            #if not processed:
+            #    self.app.logger.warning(f"No matching process function for subject: {subject}")
             message.ack()
         except Exception as e:
             self.app.logger.error(f"Error processing message: {e}")

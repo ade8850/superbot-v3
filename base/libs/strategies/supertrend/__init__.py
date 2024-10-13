@@ -48,7 +48,7 @@ def set_limit_price_to_supertrend(price: float, entry_price: float, intervals: L
     return found
 
 
-def strategy_impl(interval: str, price: float) \
+def strategy_impl(interval: str, price: float, **kwargs) \
         -> Tuple[str, str | None]:
     this_ = f"supertrend_{interval}"
 
@@ -62,16 +62,3 @@ def strategy_impl(interval: str, price: float) \
         return this_, "Sell"
 
 
-def dir_strategy_impl(interval: str, price: float) \
-        -> Tuple[str, str | None]:
-
-    _ = price  # unused in this strategy
-    this_ = f"supertrend_dir_{interval}"
-
-    symbol: Subject = strategy.symbol.get_subject()
-    if symbol.get(this_, default=None) == 1:
-        return this_, "Buy"
-    elif symbol.get(this_, default=None) == -1:
-        return this_, "Sell"
-    else:
-        return this_, None

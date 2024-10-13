@@ -16,40 +16,48 @@ from strategy_common.action import set_action
 
 from pubsub_subscriber import PubSubSubscriber
 
-import this_strategy
 
 from strategy_common.ioc import container
 
-strategy = container.strategy()
+implementation = container.implementation()
+
+from rich.console import Console
+from rich.traceback import Traceback
+
+console = Console()
 
 
 def _handle_ticker(app, raw_message):
     try:
-        subject = strategy.get_subject()
+        subject = implementation.strategy.get_subject()
         message: TickerMessage = TickerMessage.parse_obj(raw_message)
         latency_ms = (datetime.now(tz=pytz.UTC) - message.ts).total_seconds() * 1000
-        if (action := subject.get("action", default=None)) is None:
-            action = "ready"
-            subject.m_action = action
+        action = subject.get("action", default=None)
+        if action not in ("Buy", "Sell", "ready", "stop"):
+            console.print("NO ACTION > SKIP")
+            return
         price, old_price = subject.set("price", message.data.markPrice, muted=True)
         if price != old_price:
-            strategy_results = this_strategy.perform(price)
+            implementation.session(price)
+            if action in ('Buy', 'Sell') and implementation.check_close(action):
+                set_action("stop", reason="strategy")
+            elif action == "ready":
+                if (verb := implementation.get_common_verb()) in ('Buy', 'Sell'):
+                    set_action(verb, reason="strategy")
             processing_ms = ((datetime.now(tz=pytz.UTC) - message.ts).total_seconds() * 1000) - latency_ms
             rich.pretty.pprint({"topic": message.topic,
                                 "action": action,
                                 "latency_ms": round(latency_ms, 2),
                                 "processing_ms": round(processing_ms, 2),
-                                "strategy": strategy_results
+                                "__all__": implementation.values["__all__"],
                                 })
-        if action == "ready" and subject.get("verb") in ("Buy", "Sell"):
-            action = set_action(subject.get("verb"), reason="verb")
-
-            app.logger.debug(f"Action set to {action}")
     except Exception as ex:
-        app.logger.exception(ex)
+        tb = Traceback.from_exception(type(ex), ex, ex.__traceback__)
+        console.print(tb)
+        implementation.strategy.publish(last_error=str(ex), last_error_tb=str(tb))
 
 
-ws = WebSocket(
+ws: WebSocket = WebSocket(
     channel_type="linear",
     testnet=False
 )
@@ -57,16 +65,14 @@ ws = WebSocket(
 
 async def on_minute_scheduler():
     while True:
-        this_strategy.on_minute()
+        implementation.on_minute()
         await asyncio.sleep(60)
 
 
 async def _handle_pubsub(message):
     data = json.loads(message.data)
 
-    pprint(data)
-
-    subject = strategy.get_subject()
+    subject = implementation.strategy.get_subject()
 
     outer_limit_price = subject.get("outer_limit_price", default=None)
     cur_price = subject.get("price")
@@ -79,12 +85,12 @@ async def _handle_pubsub(message):
     changed = False
     if cur_price > outer_limit_price:
         if diff > 0:
-            rich.print(f"[green]++ increase outer_limit_price to {new_outer_limit_price}[/green]")
+            console.print(f"[green]++ increase outer_limit_price to {new_outer_limit_price}[/green]")
             set_outer_limit_price(new_outer_limit_price, "follow")
             changed = True
     elif cur_price < outer_limit_price:
         if diff < 0:
-            rich.print(f"[red]-- decrease outer_limit_price to {new_outer_limit_price}[/red]")
+            console.print(f"[red]-- decrease outer_limit_price to {new_outer_limit_price}[/red]")
             set_outer_limit_price(new_outer_limit_price, "follow")
             changed = True
 
@@ -95,6 +101,7 @@ async def _handle_pubsub(message):
 @asynccontextmanager
 async def lifespan(app: KrulesApp):
     global ws
+    strategy = implementation.strategy
     symbol = strategy.symbol.name.upper()
     app.logger.info(f"Connect to stream for symbol {symbol} using strategy {strategy.name}")
     ws.ticker_stream(
