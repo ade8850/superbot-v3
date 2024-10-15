@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 
 from krules_core.providers import subject_factory
 from krules_core.subject.storaged_subject import Subject
@@ -16,6 +16,12 @@ class StrategyConfig(BaseModel):
 
 class SessionConfig(BaseModel):
     strategies: List[StrategyConfig] = Field(..., description="List of strategies for the session.")
+
+
+class LimitConfig(BaseModel):
+    name: str = Field(..., description="Name of the limit. It matches the property on the subject, can be used as name in limit strategy")
+    follows: str | None = Field(None, description="If set, follows variations of this indicator")
+    reset_on_action: Literal["if_none", "always", "never"] = Field("never", description="Reset limit on action")
 
 
 class Strategy(BaseModel):
@@ -35,6 +41,8 @@ class Strategy(BaseModel):
                                           default=None)
 
     session: SessionConfig = Field(..., description="Session configuration including strategies.")
+
+    limits: List[LimitConfig] = Field([], description="Limits")
 
     class Config:
         use_enum_values = True

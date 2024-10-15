@@ -1,20 +1,19 @@
 strategy:
   is_mock_strategy: true
-  reset_limit_on_exit: false
-  outer_limit_follows: ema_100_15T
+  reset_limit_on_exit: false         # DEPRECATED
+  outer_limit_follows: ema_100_H     # DEPRECATED
 
   session:
     strategies:
       - strategy: limit
         kwargs:
-          name: limit_ema_100_15T
+          name: limit_ema_100_H
         groups:
           - open
           - bound
-      - strategy: ema
+      - strategy: limit
         kwargs:
-          interval: H
-          period: 100
+          name: limit_ema_100_4H
         groups:
           - open
           - bound
@@ -38,9 +37,12 @@ strategy:
           - open
 
   limits:
-    - name: limit_ema_100_15T
-      follows: ema_100_15T
-      reset_on_action: if_none
+  - name: limit_ema_100_H
+    follows: ema_100_H
+    reset_on_action: if_none
+  - name: limit_ema_100_4H
+    follows: ema_100_4H
+    reset_on_action: if_none
 
 
 

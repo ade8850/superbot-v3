@@ -1,19 +1,18 @@
 strategy:
   is_mock_strategy: true
   reset_limit_on_exit: false
-  outer_limit_follows: ema_100_15T
+  outer_limit_follows: ema_100_H
+  leverage: 10
 
   session:
     strategies:
-      - strategy: limit
-        kwargs:
-          name: limit_ema_100_15T
+      - strategy: outer_limit_price
         groups:
           - open
           - bound
       - strategy: ema
         kwargs:
-          interval: H
+          interval: 4H
           period: 100
         groups:
           - open
@@ -36,11 +35,6 @@ strategy:
           interval: T
         groups:
           - open
-
-  limits:
-    - name: limit_ema_100_15T
-      follows: ema_100_15T
-      reset_on_action: if_none
 
 
 

@@ -28,8 +28,9 @@ class PubSubSubscriber:
             subject = message.attributes.get('subject', '')
             processed = False
             for pattern, func in self.process_functions.values():
-                if pattern.match(subject):
-                    await func(message)
+                match = pattern.match(subject)
+                if match:
+                    await func(message, **match.groupdict())
                     processed = True
                     break
             #if not processed:

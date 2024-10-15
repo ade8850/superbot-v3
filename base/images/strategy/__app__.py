@@ -69,33 +69,36 @@ async def on_minute_scheduler():
         await asyncio.sleep(60)
 
 
-async def _handle_pubsub(message):
+async def _handle_pubsub(message, indicator):
     data = json.loads(message.data)
 
+    implementation.on_indicator(indicator, **data)
+
+    # LEGACY
     subject = implementation.strategy.get_subject()
 
     outer_limit_price = subject.get("outer_limit_price", default=None)
-    cur_price = subject.get("price")
-    if outer_limit_price is None:
-        rich.print("No outer_limit_price")
+    if not outer_limit_price:
         return
+    cur_price = subject.get("price")
 
     diff = data.get("value") - data.get("old_value")
     new_outer_limit_price = outer_limit_price + diff
     changed = False
     if cur_price > outer_limit_price:
         if diff > 0:
-            console.print(f"[green]++ increase outer_limit_price to {new_outer_limit_price}[/green]")
+            #console.print(f"[green]++ increase outer_limit_price to {new_outer_limit_price}[/green]")
             set_outer_limit_price(new_outer_limit_price, "follow")
             changed = True
     elif cur_price < outer_limit_price:
         if diff < 0:
-            console.print(f"[red]-- decrease outer_limit_price to {new_outer_limit_price}[/red]")
+            #console.print(f"[red]-- decrease outer_limit_price to {new_outer_limit_price}[/red]")
             set_outer_limit_price(new_outer_limit_price, "follow")
             changed = True
 
-    if not changed:
-        rich.print(f"[grey85]== outer_limit_price is stable[/grey85]")
+    #if not changed:
+    #    rich.print(f"[grey85]== outer_limit_price is stable[/grey85]")
+    ########
 
 
 @asynccontextmanager
@@ -113,7 +116,7 @@ async def lifespan(app: KrulesApp):
     if strategy.outerLimitFollows is not None:
         pubsub_subscriber = PubSubSubscriber(app)
 
-        pattern = f"^signal:bybit:perpetual:{symbol.lower()}:{strategy.outerLimitFollows}$"
+        pattern = f"^signal:bybit:perpetual:{symbol.lower()}:(?P<indicator>.*)$"
         app.logger.info(f"Subscribe to {pattern}")
         pubsub_subscriber.add_process_function_for_subject(
             pattern, _handle_pubsub

@@ -63,7 +63,14 @@ def updated_all():
         _make()
     with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st01")):
         _make()
-
+    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st01-10x")):
+    #     _make()
+    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st02")):
+    #     _make()
+    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st02-10x")):
+    #     _make()
+    #with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st03")):
+        _make()
 
 
 sane_utils.make_clean_recipe(

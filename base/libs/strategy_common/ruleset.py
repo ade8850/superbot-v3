@@ -6,17 +6,51 @@ from krules_core.base_functions.filters import Filter, OnSubjectPropertyChanged
 from krules_core.base_functions.processing import Process, SetSubjectProperty, StoreSubject
 from krules_core.models import Rule
 
+from datastore.ruleset_functions import DatastoreEntityStore
+from strategies.limit_price import set_limit_price
 from strategies.outer_limit_price import set_outer_limit_price
 from strategy_common import mock
 from strategy_common.ioc import container
-from strategy_common.models import Strategy
 from strategy_common.utils import calculate_pnl
-from datastore.ruleset_functions import DatastoreEntityStore
-from strategies.limit_price import set_limit_price
 
-strategy: Strategy = container.strategy()
+implementation = container.implementation()
+
 
 rulesdata: List[Rule] = [
+    Rule(
+        name="on-action-implements",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+        New action is set for Buy/Sell
+        """,
+        filters=[
+            OnSubjectPropertyChanged("action", lambda new, old: new in ("Buy", "Sell")),
+        ],
+        processing=[
+            Process(
+                lambda self: implementation.on_action(
+                    action=self.payload.get("value"),
+                    price=self.subject.get("price")
+                )
+            ),
+            DatastoreEntityStore(
+                "ActionTrack", key=lambda subject: subject.get("action_key"),
+                properties=lambda self: dict(
+                    strategy=implementation.strategy.name,
+                    leverage=implementation.strategy.leverage,
+                    side=self.payload.get("value"),
+                    dt_open=datetime.utcnow(),
+                    price_open=self.subject.get("price"),
+                    margin=self.subject.get("margin")
+                ),
+                exclude_from_indexes=("price_open", "margin", "leverage"),
+            )
+
+        ]
+    ),
+    ## LEGACY ##################
     Rule(
         name="on-action-set-limit-price",
         subscribe_to=[
@@ -66,7 +100,7 @@ rulesdata: List[Rule] = [
         ],
         processing=[
             Process(
-                lambda self: strategy.publish(
+                lambda self: implementation.strategy.publish(
                     limit_price=self.payload.get("value"),
                     limit_price_reason=self.subject.get("limit_price_reason", default=None),
                     estimated_pnl=calculate_pnl(
@@ -89,7 +123,7 @@ rulesdata: List[Rule] = [
         ],
         processing=[
             Process(
-                lambda self: strategy.publish(
+                lambda self: implementation.strategy.publish(
                     outer_limit_price=self.payload.get("value"),
                     outer_limit_price_reason=self.subject.get("outer_limit_price_reason", default=None),
                     # estimated_pnl=calculate_pnl(
@@ -114,25 +148,6 @@ rulesdata: List[Rule] = [
             OnSubjectPropertyChanged("action", lambda value: value in ("Buy", "Sell")),
         ],
         processing=[
-            SetSubjectProperty(
-                "action_entry_price", lambda subject: subject.get("price"), muted=True,
-                use_cache=False,
-            ),
-            SetSubjectProperty(
-                "side", lambda payload: payload.get("value"), use_cache=False,
-            ),
-            DatastoreEntityStore(
-                "ActionTrack", key=lambda subject: subject.get("action_key"),
-                properties=lambda self: dict(
-                    strategy=strategy.name,
-                    leverage=strategy.leverage,
-                    side=self.payload.get("value"),
-                    dt_open=datetime.utcnow(),
-                    price_open=self.subject.get("price"),
-                    margin=self.subject.get("margin")
-                ),
-                exclude_from_indexes=("price_open", "margin", "leverage"),
-            )
         ]
     ),
     Rule(
@@ -144,7 +159,7 @@ rulesdata: List[Rule] = [
             Action stop, reset limit price
         """,
         filters=[
-            Filter(strategy.resetLimitOnExit),
+            Filter(implementation.strategy.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -162,7 +177,7 @@ rulesdata: List[Rule] = [
             Also, save on datastore
         """,
         filters=[
-            Filter(strategy.isMockStrategy),
+            Filter(implementation.strategy.isMockStrategy),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
@@ -192,12 +207,12 @@ rulesdata: List[Rule] = [
             Action stop, reset companion fields when limit does not reset
         """,
         filters=[
-            Filter(not strategy.resetLimitOnExit),
+            Filter(not implementation.strategy.resetLimitOnExit),
             OnSubjectPropertyChanged("action", lambda value: value == "stop"),
         ],
         processing=[
             Process(
-                lambda self: strategy.publish(
+                lambda self: implementation.strategy.publish(
                     limit_price_reason="hold",
                     estimated_pnl=None,
                     limit_price=self.subject.get("limit_price", default=None)
@@ -219,11 +234,11 @@ rulesdata: List[Rule] = [
         processing=[
             Process(
                 lambda self: (
-                    strategy.publish(
+                    implementation.strategy.publish(
                         action=self.payload.get("value"),
                         action_price=self.subject.get("price"),
                     ),
-                    self.payload.get("value") == "stop" and strategy.publish(
+                    self.payload.get("value") == "stop" and implementation.strategy.publish(
                         stop_reason=self.subject.get("action_stop_reason", default=None, use_cache=False)
                     ),
                 )
@@ -243,7 +258,7 @@ rulesdata: List[Rule] = [
         ],
         processing=[
             Process(
-                lambda self: strategy.publish(
+                lambda self: implementation.strategy.publish(
                     margin=self.payload.get("value"),
                 )
             ),

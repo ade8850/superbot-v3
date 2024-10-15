@@ -19,12 +19,12 @@ class StrategyImpl(StrategyImplBase):
             return True
         return False
 
-    def get_pnl_ref_price(self, side) -> float | None:
+    def get_pnl_ref_price(self, side) -> float:
         subject = self.strategy.get_subject()
-        bounds = list(filter(lambda x: x is not None, [subject.get(key, default=None) for key in self.values["bound"]]))
-        if not len(bounds):
-            return None
+        outer_limit_price = subject.get("outer_limit_price")
+        ref_indicator_price = self.strategy.symbol.get_subject().get("ema_100_4H")  # TODO
+        #if self.strategy.outerLimitFollows is not None:
         if side == "Buy":
-            return max(bounds)
+            return max(outer_limit_price, ref_indicator_price)
         else:
-            return min(bounds)
+            return min(outer_limit_price, ref_indicator_price)
