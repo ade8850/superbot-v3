@@ -87,12 +87,12 @@ class StrategyImplBase(ABC):
             console.log(f"Error: Module 'strategies.{strategy_name}' does not have a function named 'strategy_impl'",
                         style="bold red")
 
-    def get_common_verb(self) -> str | None:
-        if filtered_strategies := [strat for strat in self.values["__all__"] if
-                                   self.values["__all__"][strat] is not None]:
-            reference_verb = self.values["__all__"][filtered_strategies[0]]
+    def get_common_verb(self, key="open") -> str | None:
+        if filtered_strategies := [strat for strat in self.values[key] if
+                                   self.values[key][strat] is not None]:
+            reference_verb = self.values[key][filtered_strategies[0]]
             for strat in filtered_strategies[1:]:
-                if self.values["__all__"][strat] != reference_verb:
+                if self.values[key][strat] != reference_verb:
                     return None
 
             return reference_verb
@@ -163,9 +163,8 @@ class StrategyImplBase(ABC):
 
             if not changed:
                 console.print(f"[grey85]== {limit.name} is stable[/grey85]")
-            else:
-                self.strategy.publish(**{limit.name: new_limit_price})
-
+            #else:
+            #    self.strategy.publish(**{limit.name: new_limit_price})
 
     def on_action(self, action, price):
         console.rule(f"ON ACTION {action}")
@@ -186,6 +185,3 @@ class StrategyImplBase(ABC):
                 subject.set(limit.name, price, muted=True, use_cache=False)
                 self.strategy.publish(**{limit.name: price})
                 continue
-
-
-

@@ -1,6 +1,6 @@
 # provider: bybit
 strategy:
-  implementation_class: implementation.StrategyImpl
+  implementation_class: strategy_common.implementations.BoundedStrategyImpl
   leverage: 1
 
 providers:

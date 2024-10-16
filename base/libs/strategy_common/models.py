@@ -1,9 +1,9 @@
 import os
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Dict, Any, Literal
 
 from krules_core.providers import subject_factory
 from krules_core.subject.storaged_subject import Subject
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app_common.models import Symbol
 
@@ -19,9 +19,19 @@ class SessionConfig(BaseModel):
 
 
 class LimitConfig(BaseModel):
-    name: str = Field(..., description="Name of the limit. It matches the property on the subject, can be used as name in limit strategy")
+    name: str | None = Field(None,
+                             description="Name of the limit. It matches the property on the subject, can be used as name in limit strategy")
     follows: str | None = Field(None, description="If set, follows variations of this indicator")
-    reset_on_action: Literal["if_none", "always", "never"] = Field("never", description="Reset limit on action")
+    reset_on_action: Literal["if_none", "always", "never"] = Field("if_none", description="Reset limit on action")
+
+    @model_validator(mode='after')
+    def set_name(self) -> 'LimitConfig':
+        if self.name is None or self.name == '':
+            if self.follows:
+                self.name = f"limit_{self.follows}"
+            else:
+                raise ValueError("Either 'name' or 'follows' must be provided")
+        return self
 
 
 class Strategy(BaseModel):
@@ -32,13 +42,13 @@ class Strategy(BaseModel):
     fee: float = Field(0.00055, description="Fee", validation_alias="taker_fee")
     isMockStrategy: bool = Field(..., validation_alias="is_mock_strategy",
                                  description="This is a mock strategy for testing purposes")
-    resetLimitOnExit: bool = Field(..., validation_alias="reset_limit_on_exit",
-                                   description="Set limit to None when exiting strategy")
+    # resetLimitOnExit: bool = Field(..., validation_alias="reset_limit_on_exit",
+    #                                description="Set limit to None when exiting strategy")
     symbol: Symbol = Field(..., description="The symbol to use")
 
-    outerLimitFollows: str | None = Field(validation_alias="outer_limit_follows",
-                                          description="Move the outer limit following this indicator",
-                                          default=None)
+    # outerLimitFollows: str | None = Field(validation_alias="outer_limit_follows",
+    #                                       description="Move the outer limit following this indicator",
+    #                                       default=None)
 
     session: SessionConfig = Field(..., description="Session configuration including strategies.")
 

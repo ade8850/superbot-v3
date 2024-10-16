@@ -112,17 +112,15 @@ async def lifespan(app: KrulesApp):
         callback=lambda raw_message: _handle_ticker(app, raw_message)
     )
 
-    pubsub_subscriber: PubSubSubscriber | None = None
-    if strategy.outerLimitFollows is not None:
-        pubsub_subscriber = PubSubSubscriber(app)
+    pubsub_subscriber = PubSubSubscriber(app)
 
-        pattern = f"^signal:bybit:perpetual:{symbol.lower()}:(?P<indicator>.*)$"
-        app.logger.info(f"Subscribe to {pattern}")
-        pubsub_subscriber.add_process_function_for_subject(
-            pattern, _handle_pubsub
-        )
+    pattern = f"^signal:bybit:perpetual:{symbol.lower()}:(?P<indicator>.*)$"
+    app.logger.info(f"Subscribe to {pattern}")
+    pubsub_subscriber.add_process_function_for_subject(
+        pattern, _handle_pubsub
+    )
 
-        await pubsub_subscriber.start()
+    await pubsub_subscriber.start()
 
     _ = asyncio.create_task(on_minute_scheduler())
 

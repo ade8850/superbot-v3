@@ -1,12 +1,12 @@
 strategy:
   is_mock_strategy: true
-  reset_limit_on_exit: false
-  outer_limit_follows: ema_100_H
   leverage: 10
 
   session:
     strategies:
-      - strategy: outer_limit_price
+      - strategy: limit
+        kwargs:
+          name: limit_ema_100_H
         groups:
           - open
           - bound
@@ -17,13 +17,13 @@ strategy:
         groups:
           - open
           - bound
-      - strategy: ema
-        kwargs:
-          interval: T
-          period: 100
-        groups:
-          - open
-          - close
+#      - strategy: ema
+#        kwargs:
+#          interval: T
+#          period: 100
+#        groups:
+#          - open
+#          - close
       - strategy: supertrend
         kwargs:
           interval: T
@@ -36,7 +36,8 @@ strategy:
         groups:
           - open
 
-
+  limits:
+    - follows: ema_100_H
 
 symbol:
   provider: bybit

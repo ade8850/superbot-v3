@@ -1,7 +1,5 @@
 strategy:
   is_mock_strategy: true
-  reset_limit_on_exit: false         # DEPRECATED
-  outer_limit_follows: ema_100_H     # DEPRECATED
 
   session:
     strategies:
@@ -17,13 +15,13 @@ strategy:
         groups:
           - open
           - bound
-      - strategy: ema
-        kwargs:
-          interval: T
-          period: 100
-        groups:
-          - open
-          - close
+#      - strategy: ema
+#        kwargs:
+#          interval: T
+#          period: 100
+#        groups:
+#          - open
+#          - close
       - strategy: supertrend
         kwargs:
           interval: T

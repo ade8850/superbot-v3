@@ -8,7 +8,7 @@ from strategy_common.base_impl import StrategyImplBase
 console = Console()
 
 
-class StrategyImpl(StrategyImplBase):
+class BoundedStrategyImpl(StrategyImplBase):
 
     def check_close(self, action: str) -> bool:
         assert action in ("Buy", "Sell")

@@ -50,6 +50,23 @@ rulesdata: List[Rule] = [
 
         ]
     ),
+    Rule(
+        name="on-limit-changed-publish",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+        New action is set for Buy/Sell
+        """,
+        filters=[
+            OnSubjectPropertyChanged(lambda name: name.startswith("limit_")),
+        ],
+        processing=[
+            Process(
+                lambda payload: implementation.strategy.publish(**{payload.get("property_name"): payload.get("value")})
+            )
+        ]
+    ),
     ## LEGACY ##################
     Rule(
         name="on-action-set-limit-price",
@@ -150,23 +167,23 @@ rulesdata: List[Rule] = [
         processing=[
         ]
     ),
-    Rule(
-        name="on-action-stop-reset-limit-price",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            Action stop, reset limit price
-        """,
-        filters=[
-            Filter(implementation.strategy.resetLimitOnExit),
-            OnSubjectPropertyChanged("action", lambda value: value == "stop"),
-        ],
-        processing=[
-            Process(lambda subject: set_limit_price(0, reason="action")),
-            StoreSubject(),
-        ]
-    ),
+    # Rule(
+    #     name="on-action-stop-reset-limit-price",
+    #     subscribe_to=[
+    #         event_types.SubjectPropertyChanged
+    #     ],
+    #     description="""
+    #         Action stop, reset limit price
+    #     """,
+    #     filters=[
+    #         Filter(implementation.strategy.resetLimitOnExit),
+    #         OnSubjectPropertyChanged("action", lambda value: value == "stop"),
+    #     ],
+    #     processing=[
+    #         Process(lambda subject: set_limit_price(0, reason="action")),
+    #         StoreSubject(),
+    #     ]
+    # ),
     Rule(
         name="mock-on-action-stop-back-to-ready",
         subscribe_to=[
@@ -198,28 +215,28 @@ rulesdata: List[Rule] = [
             ),
         ]
     ),
-    Rule(
-        name="on-action-stop-cm-reset",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            Action stop, reset companion fields when limit does not reset
-        """,
-        filters=[
-            Filter(not implementation.strategy.resetLimitOnExit),
-            OnSubjectPropertyChanged("action", lambda value: value == "stop"),
-        ],
-        processing=[
-            Process(
-                lambda self: implementation.strategy.publish(
-                    limit_price_reason="hold",
-                    estimated_pnl=None,
-                    limit_price=self.subject.get("limit_price", default=None)
-                )
-            ),
-        ]
-    ),
+    # Rule(
+    #     name="on-action-stop-cm-reset",
+    #     subscribe_to=[
+    #         event_types.SubjectPropertyChanged
+    #     ],
+    #     description="""
+    #         Action stop, reset companion fields when limit does not reset
+    #     """,
+    #     filters=[
+    #         Filter(not implementation.strategy.resetLimitOnExit),
+    #         OnSubjectPropertyChanged("action", lambda value: value == "stop"),
+    #     ],
+    #     processing=[
+    #         Process(
+    #             lambda self: implementation.strategy.publish(
+    #                 limit_price_reason="hold",
+    #                 estimated_pnl=None,
+    #                 limit_price=self.subject.get("limit_price", default=None)
+    #             )
+    #         ),
+    #     ]
+    # ),
     Rule(
         name="on-action-cm-publish",
         subscribe_to=[

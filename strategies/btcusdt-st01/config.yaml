@@ -1,7 +1,5 @@
 strategy:
   is_mock_strategy: true
-  reset_limit_on_exit: false
-  outer_limit_follows: ema_100_15T
 
   session:
     strategies:
@@ -18,13 +16,13 @@ strategy:
         groups:
           - open
           - bound
-      - strategy: ema
-        kwargs:
-          interval: T
-          period: 100
-        groups:
-          - open
-          - close
+#      - strategy: ema
+#        kwargs:
+#          interval: T
+#          period: 100
+#        groups:
+#          - open
+#          - close
       - strategy: supertrend
         kwargs:
           interval: T
@@ -38,9 +36,7 @@ strategy:
           - open
 
   limits:
-    - name: limit_ema_100_15T
-      follows: ema_100_15T
-      reset_on_action: if_none
+    - follows: ema_100_15T
 
 
 
