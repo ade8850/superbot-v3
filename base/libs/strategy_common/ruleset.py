@@ -3,12 +3,10 @@ from typing import List
 
 from krules_core import event_types
 from krules_core.base_functions.filters import Filter, OnSubjectPropertyChanged
-from krules_core.base_functions.processing import Process, SetSubjectProperty, StoreSubject
+from krules_core.base_functions.processing import Process, SetSubjectProperty
 from krules_core.models import Rule
 
 from datastore.ruleset_functions import DatastoreEntityStore
-from strategies.limit_price import set_limit_price
-from strategies.outer_limit_price import set_outer_limit_price
 from strategy_common import mock
 from strategy_common.ioc import container
 from strategy_common.utils import calculate_pnl
@@ -68,122 +66,6 @@ rulesdata: List[Rule] = [
         ]
     ),
     ## LEGACY ##################
-    Rule(
-        name="on-action-set-limit-price",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            New action is set for Buy/Sell, set limit price if null
-        """,
-        filters=[
-            OnSubjectPropertyChanged("action", lambda new, old: new in ("Buy", "Sell")),
-            Filter(lambda subject: subject.get("limit_price", default=None) in (None, 0))
-        ],
-        processing=[
-            Process(
-                lambda subject: set_limit_price(reason="action")
-            ),
-        ]
-    ),
-    Rule(
-        name="on-action-set-outer-limit-price",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            New action is set for Buy/Sell, set outer limit price if null
-        """,
-        filters=[
-            OnSubjectPropertyChanged("action", lambda new, old: new in ("Buy", "Sell")),
-            Filter(lambda subject: subject.get("outer_limit_price", default=None) in (None, 0))
-        ],
-        processing=[
-            Process(
-                lambda subject: set_outer_limit_price(reason="action")
-            ),
-        ]
-    ),
-    Rule(
-        name="on-limit-price-cm-publish",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            Limit price is changed, updates companion
-        """,
-        filters=[
-            OnSubjectPropertyChanged("limit_price"),
-        ],
-        processing=[
-            Process(
-                lambda self: implementation.strategy.publish(
-                    limit_price=self.payload.get("value"),
-                    limit_price_reason=self.subject.get("limit_price_reason", default=None),
-                    estimated_pnl=calculate_pnl(
-                        price=self.payload.get("value"),
-                    )
-                )
-            ),
-        ]
-    ),
-    Rule(
-        name="on-outer-limit-price-cm-publish",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            Outer Limit price is changed, updates companion
-        """,
-        filters=[
-            OnSubjectPropertyChanged("outer_limit_price"),
-        ],
-        processing=[
-            Process(
-                lambda self: implementation.strategy.publish(
-                    outer_limit_price=self.payload.get("value"),
-                    outer_limit_price_reason=self.subject.get("outer_limit_price_reason", default=None),
-                    # estimated_pnl=calculate_pnl(
-                    #     price=self.payload.get("value"),
-                    # )
-                )
-            ),
-        ]
-    ),
-    Rule(
-        name="on-action-buysell",
-        subscribe_to=[
-            event_types.SubjectPropertyChanged
-        ],
-        description="""
-            Action is Buy/Sell, 
-            - store price into subject
-            - save direction in side property to allow to detect direction changes
-            - create datastore ActionTrack entity
-        """,
-        filters=[
-            OnSubjectPropertyChanged("action", lambda value: value in ("Buy", "Sell")),
-        ],
-        processing=[
-        ]
-    ),
-    # Rule(
-    #     name="on-action-stop-reset-limit-price",
-    #     subscribe_to=[
-    #         event_types.SubjectPropertyChanged
-    #     ],
-    #     description="""
-    #         Action stop, reset limit price
-    #     """,
-    #     filters=[
-    #         Filter(implementation.strategy.resetLimitOnExit),
-    #         OnSubjectPropertyChanged("action", lambda value: value == "stop"),
-    #     ],
-    #     processing=[
-    #         Process(lambda subject: set_limit_price(0, reason="action")),
-    #         StoreSubject(),
-    #     ]
-    # ),
     Rule(
         name="mock-on-action-stop-back-to-ready",
         subscribe_to=[

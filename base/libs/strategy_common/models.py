@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import List, Dict, Any, Literal
 
 from krules_core.providers import subject_factory
@@ -23,6 +24,7 @@ class LimitConfig(BaseModel):
                              description="Name of the limit. It matches the property on the subject, can be used as name in limit strategy")
     follows: str | None = Field(None, description="If set, follows variations of this indicator")
     reset_on_action: Literal["if_none", "always", "never"] = Field("if_none", description="Reset limit on action")
+    engage: Literal["always", "never", "on_action"] = Field("always", description="Weather to engage the follow")
 
     @model_validator(mode='after')
     def set_name(self) -> 'LimitConfig':
@@ -64,6 +66,8 @@ class Strategy(BaseModel):
 
     def publish(self, **kwargs):
         from celery_app.tasks import cm_publish
+        if "_last_update" not in kwargs:
+            kwargs["_last_update"] = f"dt|{datetime.utcnow().isoformat()}"
         cm_publish.delay(
             group=f"strategies.{self.symbol.provider}",
             entity=self.name,

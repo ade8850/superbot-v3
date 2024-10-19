@@ -51,7 +51,7 @@ deployment = GkeDeployment(
                 "project": topic_signals.project,
                 "ack_deadline_seconds": 20,
                 "message_retention_duration": "600s",
-                "filter": 'hasPrefix(attributes.subject, "signal:bybit:perpetual:btcusdt:ema_100_")'
+                "filter": 'hasPrefix(attributes.subject, "signal:bybit:perpetual:solusdt:ema_100_")'
             },
         ),
     ],

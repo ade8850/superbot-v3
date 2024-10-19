@@ -1,31 +1,36 @@
 strategy:
   is_mock_strategy: true
-  leverage: 10
+  leverage: 1
 
   session:
     strategies:
       - strategy: limit
         kwargs:
-          name: limit_ema_100_H
+          name: limit_top
         groups:
           - open
           - bound
-      - strategy: limit
-        kwargs:
-          name: limit_ema_100_4H
-        groups:
-          - open
-          - bound
-#      - strategy: ema
+#      - strategy: limit
 #        kwargs:
-#          interval: T
-#          period: 100
+#          name: limit_bottom
 #        groups:
 #          - open
-#          - close
+#          - bound
+      - strategy: supertrend
+        kwargs:
+          interval: 15T
+        groups:
+          - open
+          #- close
       - strategy: supertrend
         kwargs:
           interval: T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: 3T
         groups:
           - open
           - close
@@ -36,16 +41,18 @@ strategy:
           - open
 
   limits:
-  - name: limit_ema_100_H
-    follows: ema_100_H
-    reset_on_action: if_none
-  - name: limit_ema_100_4H
+  - name: limit_top
     follows: ema_100_4H
+    engage: on_action
     reset_on_action: if_none
+#  - name: limit_bottom
+#    follows: ema_100_4H
+#    engage: on_action
+#    reset_on_action: never
 
 
 
 symbol:
   provider: bybit
   category: linear
-  name: btcusdt
+  name: solusdt

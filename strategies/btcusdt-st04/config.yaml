@@ -28,6 +28,12 @@ strategy:
         groups:
           - open
           - close
+      - strategy: supertrend
+        kwargs:
+          interval: 3T
+        groups:
+          - open
+          - close
       - strategy: supertrend_dir
         kwargs:
           interval: T

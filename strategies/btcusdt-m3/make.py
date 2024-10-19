@@ -18,7 +18,6 @@ sane_utils.make_prepare_build_context_recipes(
     baselibs=[
     ],
     sources=[
-        "requirements.txt",
         "config.yaml",
     ],
 )

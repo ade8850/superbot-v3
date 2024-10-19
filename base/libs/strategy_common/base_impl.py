@@ -1,7 +1,7 @@
 import abc
 import importlib
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple, Optional
 from strategy_common.models import Strategy, SessionConfig
 
 from rich.console import Console
@@ -25,7 +25,7 @@ class StrategyImplBase(ABC):
         """
 
     @abstractmethod
-    def get_pnl_ref_price(self, side) -> float | None:
+    def get_pnl_ref_price(self, side: str) -> Tuple[Optional[float], Optional[str]]:
         """
         Return the reference price to calculate the PnL. It is called only during an action.
         Args:
@@ -33,6 +33,7 @@ class StrategyImplBase(ABC):
 
         Returns:
             the price to calculate the PnL
+            the indicator used to calculate the PnL
         """
 
     def __init__(self, strategy: Strategy):
@@ -108,23 +109,30 @@ class StrategyImplBase(ABC):
         console.rule("ON MINUTE")
 
         estimated_pnl = None
+        ref_indicator = None
+        ref_price = None
+
         try:
             subject = self.strategy.get_subject()
             action = subject.get("action", default=None)
             if action in ("Buy", "Sell"):
-                ref_price = self.get_pnl_ref_price(side=action)
-                if ref_price:
+                ref_price, ref_indicator = self.get_pnl_ref_price(side=action)
+                if ref_price is not None:
                     estimated_pnl = calculate_pnl(price=ref_price, side=action)
-                    console.print(f"Got new estimated PnL: {estimated_pnl}")
+                    console.print(f"Got new estimated PnL: {estimated_pnl} from {ref_indicator}")
                 else:
                     console.print("Cannot estimate PnL")
+            else:
+                console.print("No active position to estimate PnL")
         except Exception as ex:
             console.log("!!!!!!!!!!! ON MINUTE > ERROR !!!!!!!!!!!")
             tb = Traceback.from_exception(type(ex), ex, ex.__traceback__)
             console.print(tb)
 
         self.strategy.publish(
-            estimated_pnl=estimated_pnl
+            estimated_pnl=estimated_pnl,
+            pnl_indicator=ref_indicator,
+            pnl_indicator_value=ref_price,
         )
 
     def on_indicator(self, indicator, value, old_value):
@@ -141,8 +149,9 @@ class StrategyImplBase(ABC):
             if not limit_price:
                 continue
 
-            console.print(f">> MATCHES {limit.name}")
-            console.print(f">> {value}, {old_value}")
+            if limit.engage != "always":
+                if limit.engage == "never" or limit.engage == "on_action" and subject.get("action") not in ("Buy", "Sell"):
+                    continue
 
             cur_price = subject.get("price")
 
@@ -173,15 +182,20 @@ class StrategyImplBase(ABC):
         subject.set("action_entry_price", price, muted=True, use_cache=False)
         subject.set("side", action, use_cache=False)
 
+        #console.print("Evaluating weather to set limits")
         for limit in self.strategy.limits:
 
+            #console.print(f">> {limit.name} {limit.reset_on_action}")
             if limit.reset_on_action == "if_none":
                 if subject.get(limit.name, default=None) is None:
+                    #console.print(f">>* SET")
                     subject.set(limit.name, price, muted=True, use_cache=False)
                     self.strategy.publish(**{limit.name: price})
                 continue
 
+            #console.print(f">> {limit.name} {limit.reset_on_action}")
             if limit.reset_on_action == "always":
+                #console.print(f">>* SET")
                 subject.set(limit.name, price, muted=True, use_cache=False)
                 self.strategy.publish(**{limit.name: price})
                 continue

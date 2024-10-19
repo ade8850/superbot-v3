@@ -1,6 +1,5 @@
 strategy:
   is_mock_strategy: true
-  leverage: 10
 
   session:
     strategies:
@@ -30,6 +29,12 @@ strategy:
         groups:
           - open
           - close
+      - strategy: supertrend
+        kwargs:
+          interval: 3T
+        groups:
+          - open
+          - close
       - strategy: supertrend_dir
         kwargs:
           interval: T
@@ -38,6 +43,9 @@ strategy:
 
   limits:
     - follows: ema_100_H
+
+
+
 
 symbol:
   provider: bybit

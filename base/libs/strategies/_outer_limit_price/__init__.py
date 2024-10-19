@@ -6,14 +6,6 @@ from strategy_common.models import Strategy
 strategy: Strategy = container.strategy()
 
 
-def set_outer_limit_price(price: float = None, reason: str = "shell"):
-    subject = strategy.get_subject()
-    if price is None:
-        price = subject.get("price")
-    subject.set("outer_limit_price_reason", reason, muted=True)
-    subject.set("outer_limit_price", price)
-
-
 def strategy_impl(price: float = None, **kwargs) -> Tuple[str, str | None]:
     this_ = "outer_limit_price"
     subject = strategy.get_subject()

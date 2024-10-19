@@ -9,4 +9,5 @@ c.InteractiveShellApp.exec_lines = [
     'strategy = container.strategy()',
     'ss = strategy.get_subject()',
     'sym = strategy.symbol.get_subject()',
+    'imp = container.implementation()',
 ]
