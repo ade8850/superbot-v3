@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import List
 
@@ -33,19 +34,6 @@ rulesdata: List[Rule] = [
                     price=self.subject.get("price")
                 )
             ),
-            DatastoreEntityStore(
-                "ActionTrack", key=lambda subject: subject.get("action_key"),
-                properties=lambda self: dict(
-                    strategy=implementation.strategy.name,
-                    leverage=implementation.strategy.leverage,
-                    side=self.payload.get("value"),
-                    dt_open=datetime.utcnow(),
-                    price_open=self.subject.get("price"),
-                    margin=self.subject.get("margin")
-                ),
-                exclude_from_indexes=("price_open", "margin", "leverage"),
-            )
-
         ]
     ),
     Rule(
@@ -65,9 +53,8 @@ rulesdata: List[Rule] = [
             )
         ]
     ),
-    ## LEGACY ##################
     Rule(
-        name="mock-on-action-stop-back-to-ready",
+        name="mock-on-action-stop",
         subscribe_to=[
             event_types.SubjectPropertyChanged
         ],
@@ -81,46 +68,13 @@ rulesdata: List[Rule] = [
         ],
         processing=[
             mock.UpdateMargin(lambda payload: payload.get("old_value"), sleep=2),
-            DatastoreEntityStore(
-                "ActionTrack", key=lambda subject: subject.get("action_key"),
-                properties=lambda self: dict(
-                    dt_close=datetime.utcnow(),
-                    price_close=self.subject.get("price"),
-                    new_margin=self.subject.get("margin"),
-                    limit_price_reason=self.subject.get("limit_price_reason", default=None)
-                ),
-                exclude_from_indexes=("price_close", "new_margin"),
-                update=True,
-            ),
             SetSubjectProperty(
                 "action", "ready", use_cache=False,
             ),
         ]
     ),
-    # Rule(
-    #     name="on-action-stop-cm-reset",
-    #     subscribe_to=[
-    #         event_types.SubjectPropertyChanged
-    #     ],
-    #     description="""
-    #         Action stop, reset companion fields when limit does not reset
-    #     """,
-    #     filters=[
-    #         Filter(not implementation.strategy.resetLimitOnExit),
-    #         OnSubjectPropertyChanged("action", lambda value: value == "stop"),
-    #     ],
-    #     processing=[
-    #         Process(
-    #             lambda self: implementation.strategy.publish(
-    #                 limit_price_reason="hold",
-    #                 estimated_pnl=None,
-    #                 limit_price=self.subject.get("limit_price", default=None)
-    #             )
-    #         ),
-    #     ]
-    # ),
     Rule(
-        name="on-action-cm-publish",
+        name="on-action-change-publish",
         subscribe_to=[
             event_types.SubjectPropertyChanged
         ],
@@ -137,15 +91,18 @@ rulesdata: List[Rule] = [
                         action=self.payload.get("value"),
                         action_price=self.subject.get("price"),
                     ),
-                    self.payload.get("value") == "stop" and implementation.strategy.publish(
-                        stop_reason=self.subject.get("action_stop_reason", default=None, use_cache=False)
-                    ),
+                    implementation.strategy.position().publish(
+                        action=self.payload.get("value"),
+                        price=self.subject.get("price"),
+                        margin=self.subject.get("margin"),
+                        values=json.dumps(implementation.values),
+                    )
                 )
             ),
         ]
     ),
     Rule(
-        name="on-margin-cm-publish",
+        name="on-margin-change-publish",
         subscribe_to=[
             event_types.SubjectPropertyChanged
         ],
@@ -164,21 +121,24 @@ rulesdata: List[Rule] = [
         ]
     ),
     Rule(
-        name="on-change-side-reset-limit-price",
+        name="on-change-side-implements",
         subscribe_to=[
             event_types.SubjectPropertyChanged
         ],
         description="""
-            Reset limit_price on change direction
+            Call the implementation class on side change
         """,
         filters=[
             OnSubjectPropertyChanged("side", lambda value: value in ("Buy", "Sell")),
             Filter(lambda self: self.payload.get("value") != self.subject.get("action"))
         ],
         processing=[
-            SetSubjectProperty(
-                "limit_price", lambda subejct: subejct.get("action_entry_price"), use_cache=False,
-            ),
+            Process(
+                lambda payload: implementation.on_side(
+                    side=payload.get("value"),
+                    old_side=payload.get("old_value")
+                )
+            )
         ]
     ),
 ]

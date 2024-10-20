@@ -73,3 +73,20 @@ class Strategy(BaseModel):
             entity=self.name,
             properties=kwargs
         )
+
+    def position(self) -> 'Position':
+        return Position(strategy=self)
+
+
+class Position(BaseModel):
+    strategy: Strategy
+
+    def publish(self, **kwargs):
+        from celery_app.tasks import cm_publish
+        if "_last_update" not in kwargs:
+            kwargs["_last_update"] = f"dt|{datetime.utcnow().isoformat()}"
+        cm_publish.delay(
+            group=f"strategies.{self.strategy.symbol.provider}.positions",
+            entity=self.strategy.name,
+            properties=kwargs
+        )

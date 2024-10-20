@@ -61,21 +61,15 @@ def updated_all():
     #     _make()
     with sh.pushd(os.path.join(root_dir, "base", "images", "strategy")):
         _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st02")):
-    #     _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st02-10x")):
-    #     _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st03")):
-    #     _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st03-10x")):
-    #     _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st04")):
-    #     _make()
-    # with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st04-10x")):
-    #     _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st03")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-st04")):
+        _make()
     with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m1")):
         _make()
     with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m2")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-m3")):
         _make()
 
 

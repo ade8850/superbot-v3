@@ -55,7 +55,6 @@ deployment = GkeDeployment(
             },
         ),
     ],
-    datastore_id=f"projects/{sane_utils.get_project_id()}/databases/{sane_utils.get_var_for_target('project_name')}",
     app_container_kwargs={
         "env": [
             EnvVarArgs(

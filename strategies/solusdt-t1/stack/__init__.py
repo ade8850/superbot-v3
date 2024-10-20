@@ -1,3 +1,5 @@
+import os
+
 import pulumi
 from pulumi import Config
 from pulumi_gcp.artifactregistry import Repository
@@ -12,6 +14,8 @@ from krules_dev.sane_utils.pulumi.components import GkeDeployment
 config = Config()
 
 app_name = sane_utils.check_env("app_name")
+#app_name = f"strategy-{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}"
+#os.environ["APP_NAME"] = app_name
 
 base_stack_ref = get_stack_reference("base")
 

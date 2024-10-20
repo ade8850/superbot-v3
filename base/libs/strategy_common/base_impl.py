@@ -1,5 +1,6 @@
 import abc
 import importlib
+import json
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Tuple, Optional
 from strategy_common.models import Strategy, SessionConfig
@@ -150,7 +151,8 @@ class StrategyImplBase(ABC):
                 continue
 
             if limit.engage != "always":
-                if limit.engage == "never" or limit.engage == "on_action" and subject.get("action") not in ("Buy", "Sell"):
+                if limit.engage == "never" or limit.engage == "on_action" and subject.get("action") not in (
+                "Buy", "Sell"):
                     continue
 
             cur_price = subject.get("price")
@@ -172,8 +174,6 @@ class StrategyImplBase(ABC):
 
             if not changed:
                 console.print(f"[grey85]== {limit.name} is stable[/grey85]")
-            #else:
-            #    self.strategy.publish(**{limit.name: new_limit_price})
 
     def on_action(self, action, price):
         console.rule(f"ON ACTION {action}")
@@ -182,20 +182,17 @@ class StrategyImplBase(ABC):
         subject.set("action_entry_price", price, muted=True, use_cache=False)
         subject.set("side", action, use_cache=False)
 
-        #console.print("Evaluating weather to set limits")
         for limit in self.strategy.limits:
 
-            #console.print(f">> {limit.name} {limit.reset_on_action}")
             if limit.reset_on_action == "if_none":
                 if subject.get(limit.name, default=None) is None:
-                    #console.print(f">>* SET")
-                    subject.set(limit.name, price, muted=True, use_cache=False)
-                    self.strategy.publish(**{limit.name: price})
+                    subject.set(limit.name, price, muted=False, use_cache=False)
                 continue
 
-            #console.print(f">> {limit.name} {limit.reset_on_action}")
             if limit.reset_on_action == "always":
-                #console.print(f">>* SET")
-                subject.set(limit.name, price, muted=True, use_cache=False)
-                self.strategy.publish(**{limit.name: price})
+                subject.set(limit.name, price, muted=False, use_cache=False)
                 continue
+
+    def on_side(self, side, old_side):
+
+        pass

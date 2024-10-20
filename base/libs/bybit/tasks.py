@@ -7,14 +7,9 @@ from typing import List
 import pandas as pd
 from pybit.unified_trading import HTTP
 
-from  app_common.models import Interval, Symbol
+from app_common.models import Interval, Symbol
 from bybit.models import KlineMessageData, GetKlineAPIResponse, GetInstrumentInfoAPIResponse
 from technical_analysis import TechnicalAnalysis
-
-kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
-kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "0")))
-kline_store_df_on_subject = bool(eval(os.environ.get("KLINE_STORE_DF_ON_SUBJECT", "0")))
-kline_limit_size = int(eval(os.environ.get("KLINE_LIMIT_SIZE", "400")))
 
 
 def _get_session() -> HTTP:
@@ -22,9 +17,17 @@ def _get_session() -> HTTP:
 
 
 def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
+    kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
+    kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "0")))
+    kline_store_df_on_subject = bool(eval(os.environ.get("KLINE_STORE_DF_ON_SUBJECT", "0")))
+    kline_limit_size = int(eval(os.environ.get("KLINE_LIMIT_SIZE", "200")))
+
     interval = Interval.model_validate(interval)
     symbol = Symbol.model_validate(symbol)
     kline_data = KlineMessageData.model_validate(kline_data)
+
+    if kline_data.confirm:
+        kline_use_cached_results = False
 
     subject = symbol.get_subject()
     records = subject.get(f"_kline_records_{interval.freq}", default=[]) if kline_use_cached_results else []
@@ -114,7 +117,6 @@ def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
 
 
 def update_instrument_info(symbol: Symbol):
-
     session: HTTP = _get_session()
     raw = session.get_instruments_info(category=symbol.category, symbol=symbol.name)
     resp = GetInstrumentInfoAPIResponse.model_validate(raw)
