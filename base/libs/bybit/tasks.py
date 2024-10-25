@@ -1,7 +1,7 @@
 import base64
 import io
-import json
 import os
+from datetime import datetime
 from typing import List
 
 import pandas as pd
@@ -17,8 +17,8 @@ def _get_session() -> HTTP:
 
 
 def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
-    kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "1")))
-    kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "0")))
+    kline_use_cached_results = bool(eval(os.environ.get("KLINE_USE_CACHED_RESULTS", "0")))
+    kline_always_cache_results = bool(eval(os.environ.get("KLINE_ALWAYS_CACHE_RESULTS", "1")))
     kline_store_df_on_subject = bool(eval(os.environ.get("KLINE_STORE_DF_ON_SUBJECT", "0")))
     kline_limit_size = int(eval(os.environ.get("KLINE_LIMIT_SIZE", "200")))
 
@@ -26,10 +26,13 @@ def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
     symbol = Symbol.model_validate(symbol)
     kline_data = KlineMessageData.model_validate(kline_data)
 
-    if kline_data.confirm:
-        kline_use_cached_results = False
-
     subject = symbol.get_subject()
+    last_update = datetime.fromisoformat(
+        subject.get(f"_last_{interval.freq}_update", default=datetime.utcnow().isoformat())
+    )
+    #if datetime.utcnow() - last_update > interval.interval:
+    #    kline_use_cached_results = False
+    #kline_use_cached_results = False
     records = subject.get(f"_kline_records_{interval.freq}", default=[]) if kline_use_cached_results else []
     if len(records) < kline_limit_size:
         session = _get_session()
@@ -57,6 +60,13 @@ def process_kline_data(task, interval: dict, symbol: dict, kline_data: dict):
                 'turnover': result.turnover,
             })
         records = _records
+        # always update first element value
+        first = records[0]
+        first['close'] = kline_data.close
+        first['high'] = kline_data.high > first['high'] and kline_data.high or first['high']
+        first['low'] = kline_data.low < first['low'] and kline_data.low or first['low']
+
+        subject.set(f"_last_{interval.freq}_update", datetime.utcnow().isoformat(), muted=True, use_cache=False)
     else:
         is_fresh_data = False
 

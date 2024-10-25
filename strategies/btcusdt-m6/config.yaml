@@ -1,33 +1,39 @@
 strategy:
   is_mock_strategy: true
-  leverage: 1
 
   session:
     strategies:
       - strategy: limit
         kwargs:
-          name: limit_top
+          name: limit_ema_100_H
         groups:
           - open
           - bound
-      - strategy: supertrend
+      - strategy: limit
         kwargs:
-          interval: 15T
+          name: limit_ema_100_4H
         groups:
           - open
-          - close
+          - bound
+#      - strategy: ema
+#        kwargs:
+#          interval: T
+#          period: 100
+#        groups:
+#          - open
+#          - close
       - strategy: supertrend
         kwargs:
           interval: T
         groups:
           - open
           - close
-#      - strategy: supertrend
-#        kwargs:
-#          interval: 3T
-#        groups:
-#          - open
-#          - close
+      - strategy: supertrend
+        kwargs:
+          interval: 15T
+        groups:
+          - open
+          - close
       - strategy: supertrend_dir
         kwargs:
           interval: T
@@ -35,9 +41,11 @@ strategy:
           - open
 
   limits:
-  - name: limit_top
+  - name: limit_ema_100_H
+    follows: ema_100_H
+    reset_on_action: if_none
+  - name: limit_ema_100_4H
     follows: ema_100_4H
-    engage: always
     reset_on_action: if_none
 
 

@@ -12,6 +12,12 @@ strategy:
           - bound
       - strategy: supertrend
         kwargs:
+          interval: H
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
           interval: 15T
         groups:
           - open
@@ -22,17 +28,12 @@ strategy:
         groups:
           - open
           - close
-#      - strategy: supertrend
-#        kwargs:
-#          interval: 3T
-#        groups:
-#          - open
-#          - close
       - strategy: supertrend_dir
         kwargs:
           interval: T
         groups:
           - open
+
 
   limits:
   - name: limit_top
@@ -45,4 +46,4 @@ strategy:
 symbol:
   provider: bybit
   category: linear
-  name: btcusdt
+  name: solusdt
