@@ -5,13 +5,13 @@ strategy:
     strategies:
       - strategy: limit
         kwargs:
-          name: limit_ema_100_H
+          name: limit_ema_100_4H
         groups:
           - open
           - bound
       - strategy: limit
         kwargs:
-          name: limit_ema_100_4H
+          name: limit_ema_100_D
         groups:
           - open
           - bound
@@ -47,11 +47,11 @@ strategy:
           - open
 
   limits:
-  - name: limit_ema_100_H
-    follows: ema_100_H
-    reset_on_action: if_none
   - name: limit_ema_100_4H
     follows: ema_100_4H
+    reset_on_action: if_none
+  - name: limit_ema_100_D
+    follows: ema_100_D
     reset_on_action: if_none
 
 

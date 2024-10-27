@@ -30,6 +30,12 @@ strategy:
           - close
       - strategy: supertrend
         kwargs:
+          interval: 3T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
           interval: 15T
         groups:
           - open
