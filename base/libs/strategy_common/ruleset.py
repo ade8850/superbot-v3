@@ -14,7 +14,6 @@ from strategy_common.utils import calculate_pnl
 
 implementation = container.implementation()
 
-
 rulesdata: List[Rule] = [
     Rule(
         name="on-action-implements",
@@ -91,11 +90,39 @@ rulesdata: List[Rule] = [
                         action=self.payload.get("value"),
                         action_price=self.subject.get("price"),
                     ),
+                    self.payload.get("value") in ("Buy", "Sell") and
                     implementation.strategy.position().publish(
                         action=self.payload.get("value"),
-                        price=self.subject.get("price"),
-                        margin=self.subject.get("margin"),
-                        values=json.dumps(implementation.values),
+                        open_price=self.subject.get("price"),
+                        open_time=datetime.utcnow().isoformat(),
+                        open_values=json.dumps(implementation.values),
+                        close_price=None,
+                        close_values=None,
+                    ) or implementation.strategy.position().publish(
+                        action=self.payload.get("value"),
+                        close_price=self.subject.get("price"),
+                        close_values=json.dumps(implementation.values),
+                    )
+                )
+            ),
+        ]
+    ),
+    Rule(
+        name="on-margin-change-publish",
+        subscribe_to=[
+            event_types.SubjectPropertyChanged
+        ],
+        description="""
+            Action is changed, updates companion
+        """,
+        filters=[
+            OnSubjectPropertyChanged("margin"),
+        ],
+        processing=[
+            Process(
+                lambda payload: (
+                    implementation.strategy.position().publish(
+                        margin=payload.get("value")
                     )
                 )
             ),

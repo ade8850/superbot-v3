@@ -1,0 +1,58 @@
+strategy:
+  is_mock_strategy: true
+
+  session:
+    strategies:
+      - strategy: limit
+        kwargs:
+          name: limit_ema_100_4H
+        groups:
+          - open
+          - bound
+      - strategy: supertrend
+        kwargs:
+          interval: T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: 3T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: 5T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: 15T
+        groups:
+          - open
+          - close
+      - strategy: supertrend
+        kwargs:
+          interval: H
+        groups:
+          - open
+          - close
+      - strategy: supertrend_dir
+        kwargs:
+          interval: T
+        groups:
+          - open
+
+  limits:
+  - name: limit_ema_100_4H
+    follows: ema_100_4H
+    reset_on_action: if_none
+
+
+
+symbol:
+  provider: bybit
+  category: linear
+  name: solusdt

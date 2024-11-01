@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 import importlib
-import logging
-import os
 
 import sh
 import structlog
-from sane import *
-from structlog.contextvars import bind_contextvars
-
 from krules_dev import sane_utils
+from sane import *
 
 sane_utils.load_env()
 
@@ -71,6 +67,22 @@ def updated_all():
         _make()
     with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-m3")):
         _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m4")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m5")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-m6")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m7")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-m8")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-m9")):
+        _make()
+    with sh.pushd(os.path.join(root_dir, "strategies", "btcusdt-m10")):
+        _make()
+    # with sh.pushd(os.path.join(root_dir, "strategies", "solusdt-t1")):
+    #     _make()
 
 
 sane_utils.make_clean_recipe(
